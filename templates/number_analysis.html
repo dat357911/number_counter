@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phân Tích Dãy Số - Made by Daniel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        padding-top: 56px;
+      }
+      .container {
+        max-width: 800px;
+        margin-top: 30px;
+      }
+      .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        text-align: center;
+        padding: 20px;
+      }
+      .btn-calculate {
+        background-color: #0d6efd;
+        border: none;
+        padding: 10px 30px;
+      }
+      .btn-calculate:hover {
+        background-color: #0b5ed7;
+      }
+      #result {
+        margin-top: 20px;
+        display: none;
+      }
+      .alert {
+        display: none;
+        margin-top: 20px;
+      }
+      .result-section {
+        margin-bottom: 15px;
+        padding: 15px;
+        border-radius: 10px;
+        background-color: #f8f9fa;
+      }
+      .mode-selector {
+        margin-bottom: 20px;
+      }
+      .sequence-input {
+        margin-bottom: 15px;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <span class="fw-bold">Made by Daniel</span>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"
+                ><i class="fas fa-home"></i> Trang Chủ</a
+              >
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle active"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-tools"></i> Công Cụ
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item active" href="/number-analysis">
+                    <i class="fas fa-calculator"></i> Phân Tích Dãy Số</a
+                  >
+                </li>
+                <!-- Thêm công cụ khác ở đây -->
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="mb-0">Phân Tích Dãy Số</h2>
+        </div>
+        <div class="card-body">
+          <div class="mode-selector mb-4">
+            <h5>Chọn chế độ:</h5>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="mode"
+                id="singleMode"
+                value="single"
+                checked
+                onchange="switchMode()"
+              />
+              <label class="form-check-label" for="singleMode">
+                Tính tổng số lượng (1 dãy số)
+              </label>
+            </div>
+            <div class="form-check">
+              <input
+                class="form-check-input"
+                type="radio"
+                name="mode"
+                id="dualMode"
+                value="dual"
+                onchange="switchMode()"
+              />
+              <label class="form-check-label" for="dualMode">
+                Kiểm tra tính liên tục (2 dãy số)
+              </label>
+            </div>
+          </div>
+
+          <div id="singleSequence" class="sequence-input">
+            <div class="mb-3">
+              <label for="numbers" class="form-label"
+                >Nhập dãy số (ví dụ: 1-10, 12, 15, 19-23):</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="numbers"
+                placeholder="Nhập dãy số..."
+                onkeypress="handleKeyPress(event)"
+                onkeydown="handleKeyDown(event)"
+              />
+            </div>
+          </div>
+
+          <div id="dualSequence" class="sequence-input">
+            <div class="mb-3">
+              <label for="sequence1" class="form-label"
+                >Dãy số thứ nhất (ví dụ: 6,11-18,20):</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="sequence1"
+                placeholder="Nhập dãy số thứ nhất..."
+                onkeypress="handleKeyPress(event)"
+                onkeydown="handleKeyDown(event)"
+              />
+            </div>
+            <div class="mb-3">
+              <label for="sequence2" class="form-label"
+                >Dãy số thứ hai (ví dụ: 1-5,7-10,19,21):</label
+              >
+              <input
+                type="text"
+                class="form-control"
+                id="sequence2"
+                placeholder="Nhập dãy số thứ hai..."
+                onkeypress="handleKeyPress(event)"
+                onkeydown="handleKeyDown(event)"
+              />
+            </div>
+          </div>
+
+          <div class="text-center">
+            <button class="btn btn-primary btn-calculate" onclick="calculate()">
+              Phân tích
+            </button>
+          </div>
+
+          <div id="result" class="alert">
+            <div id="singleResult" class="result-section">
+              <h4>Thống kê số lượng:</h4>
+              <p>
+                Tổng số lượng số: <strong><span id="count"></span></strong>
+              </p>
+              <p>Danh sách số: <span id="numberList"></span></p>
+            </div>
+
+            <div id="continuityResult" class="result-section">
+              <h4>Phân tích tính liên tục:</h4>
+              <p id="continuityMessage"></p>
+            </div>
+          </div>
+
+          <div id="error" class="alert alert-danger"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Thêm event listener cho phím ESC ở mức document
+      document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+          // Reset tất cả input và kết quả
+          document.getElementById("numbers").value = "";
+          document.getElementById("sequence1").value = "";
+          document.getElementById("sequence2").value = "";
+          document.getElementById("result").style.display = "none";
+          document.getElementById("error").style.display = "none";
+
+          // Focus vào input phù hợp dựa theo mode
+          const mode = document.querySelector(
+            'input[name="mode"]:checked'
+          ).value;
+          if (mode === "single") {
+            document.getElementById("numbers").focus();
+          } else {
+            document.getElementById("sequence1").focus();
+          }
+        }
+      });
+
+      function handleKeyDown(event) {
+        // Kiểm tra nếu phím nhấn là Delete
+        if (event.key === "Delete") {
+          // Xóa nội dung của input hiện tại
+          event.target.value = "";
+
+          // Ẩn kết quả và thông báo lỗi
+          document.getElementById("result").style.display = "none";
+          document.getElementById("error").style.display = "none";
+
+          // Focus vào input để người dùng có thể nhập tiếp
+          event.target.focus();
+        }
+      }
+
+      function handleKeyPress(event) {
+        // Kiểm tra nếu phím nhấn là Enter
+        if (event.key === "Enter") {
+          calculate();
+        }
+      }
+
+      function switchMode() {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        document.getElementById("singleSequence").style.display =
+          mode === "single" ? "block" : "none";
+        document.getElementById("dualSequence").style.display =
+          mode === "dual" ? "block" : "none";
+        document.getElementById("singleResult").style.display =
+          mode === "single" ? "block" : "none";
+        document.getElementById("continuityResult").style.display =
+          mode === "dual" ? "block" : "none";
+
+        // Reset form
+        document.getElementById("result").style.display = "none";
+        document.getElementById("error").style.display = "none";
+        document.getElementById("numbers").value = "";
+        document.getElementById("sequence1").value = "";
+        document.getElementById("sequence2").value = "";
+      }
+
+      function calculate() {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const resultDiv = document.getElementById("result");
+        const errorDiv = document.getElementById("error");
+
+        // Ẩn các thông báo trước
+        resultDiv.style.display = "none";
+        errorDiv.style.display = "none";
+
+        let data;
+        if (mode === "single") {
+          const numbers = document.getElementById("numbers").value;
+          data = `mode=single&numbers=${encodeURIComponent(numbers)}`;
+        } else {
+          const sequence1 = document.getElementById("sequence1").value;
+          const sequence2 = document.getElementById("sequence2").value;
+          data = `mode=dual&sequence1=${encodeURIComponent(
+            sequence1
+          )}&sequence2=${encodeURIComponent(sequence2)}`;
+        }
+
+        fetch("/calculate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/x-www-form-urlencoded",
+          },
+          body: data,
+        })
+          .then((response) => response.json())
+          .then((data) => {
+            if (data.error) {
+              errorDiv.textContent = data.error;
+              errorDiv.style.display = "block";
+            } else {
+              if (mode === "single") {
+                document.getElementById("count").textContent = data.count;
+                document.getElementById("numberList").textContent =
+                  data.numbers.join(", ");
+                resultDiv.className = "alert alert-success";
+              } else {
+                document.getElementById("continuityMessage").textContent =
+                  data.continuity_message;
+                resultDiv.className = data.is_continuous
+                  ? "alert alert-success"
+                  : "alert alert-warning";
+              }
+              resultDiv.style.display = "block";
+            }
+          })
+          .catch((error) => {
+            errorDiv.textContent =
+              "Có lỗi xảy ra khi tính toán. Vui lòng thử lại.";
+            errorDiv.style.display = "block";
+          });
+      }
+
+      // Khởi tạo giao diện
+      switchMode();
+    </script>
+  </body>
+</html>

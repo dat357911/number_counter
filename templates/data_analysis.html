@@ -1,0 +1,712 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phân Tích Dữ Liệu - Made by Daniel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f8f9fa;
+        padding-top: 56px;
+      }
+      .container {
+        max-width: 1200px;
+        margin-top: 30px;
+      }
+      .card {
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+      .card-header {
+        background-color: #0d6efd;
+        color: white;
+        border-radius: 15px 15px 0 0 !important;
+        text-align: center;
+        padding: 20px;
+      }
+      .excel-table {
+        width: 100%;
+        border-collapse: collapse;
+        font-family: Arial, sans-serif;
+      }
+      .excel-table th {
+        background-color: #f3f3f3;
+        border: 1px solid #ddd;
+        padding: 12px;
+        text-align: center;
+        font-weight: bold;
+      }
+      .excel-table td {
+        border: 1px solid #ddd;
+        padding: 0;
+        height: 40px;
+      }
+      .excel-table input {
+        width: 100%;
+        height: 100%;
+        border: none;
+        padding: 8px;
+        box-sizing: border-box;
+        font-size: 14px;
+      }
+      .excel-table input:focus {
+        outline: 2px solid #0d6efd;
+        background-color: #f8f9fa;
+      }
+      .table-container {
+        max-height: 600px;
+        overflow-y: auto;
+        margin: 20px 0;
+        border-radius: 8px;
+        border: 1px solid #dee2e6;
+      }
+      .table-actions {
+        display: flex;
+        gap: 10px;
+        padding: 15px;
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        align-items: center;
+        flex-wrap: wrap;
+      }
+      .btn {
+        padding: 8px 16px;
+        font-weight: 500;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .btn i {
+        font-size: 16px;
+      }
+      .btn-add-row {
+        background-color: #28a745;
+        color: white;
+      }
+      .btn-add-row:hover {
+        background-color: #218838;
+        color: white;
+      }
+      .btn-paste {
+        background-color: #ffc107;
+        color: #000;
+      }
+      .btn-paste:hover {
+        background-color: #e0a800;
+        color: #000;
+      }
+      .btn-danger {
+        background-color: #dc3545;
+      }
+      .btn-danger:hover {
+        background-color: #c82333;
+      }
+      .btn-analyze {
+        background-color: #0d6efd;
+        color: white;
+      }
+      .btn-analyze:hover {
+        background-color: #0b5ed7;
+        color: white;
+      }
+      #result {
+        margin-top: 20px;
+        display: none;
+      }
+      .result-section {
+        margin: 15px 0;
+        padding: 20px;
+        border-radius: 10px;
+        background-color: #fff;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .error-row {
+        background-color: #ffe6e6;
+      }
+      .success-row {
+        background-color: #e6ffe6;
+      }
+      .divider {
+        width: 1px;
+        height: 24px;
+        background-color: #dee2e6;
+        margin: 0 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+      <div class="container">
+        <a class="navbar-brand" href="/">
+          <span class="fw-bold">Made by Daniel</span>
+        </a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"
+                ><i class="fas fa-home"></i> Trang Chủ</a
+              >
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle active"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-tools"></i> Công Cụ
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="/number-analysis">
+                    <i class="fas fa-calculator"></i> Phân Tích Dãy Số</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item active" href="/data-analysis">
+                    <i class="fas fa-table"></i> Phân Tích Dữ Liệu</a
+                  >
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="container">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="mb-0">Phân Tích Dữ Liệu</h2>
+        </div>
+        <div class="card-body">
+          <div class="table-actions">
+            <button class="btn btn-add-row" onclick="addRow('main')">
+              <i class="fas fa-plus"></i> Thêm Dòng
+            </button>
+            <button class="btn btn-paste" onclick="pasteFromClipboard('main')">
+              <i class="fas fa-paste"></i> Dán từ Excel
+            </button>
+            <div class="divider"></div>
+            <button class="btn btn-danger" onclick="clearTable('main')">
+              <i class="fas fa-trash"></i> Xóa Tất Cả
+            </button>
+            <button class="btn btn-analyze" onclick="analyzeData()">
+              <i class="fas fa-calculator"></i> Đếm Số
+            </button>
+            <button class="btn btn-analyze" onclick="checkContinuity()">
+              <i class="fas fa-link"></i> Check Tính Liên Tục
+            </button>
+          </div>
+
+          <div class="table-container">
+            <table class="excel-table" id="mainTable">
+              <thead>
+                <tr>
+                  <th style="width: 60px">STT</th>
+                  <th>MEAS</th>
+                  <th>C/NO</th>
+                  <th>CTNs</th>
+                </tr>
+              </thead>
+              <tbody id="mainTableBody">
+                <!-- Dữ liệu sẽ được thêm vào đây -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Kết quả phân tích -->
+          <div id="result" class="mt-4">
+            <div class="result-section">
+              <h4>Kết quả phân tích:</h4>
+              <div id="analysisResult"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      // Khởi tạo bảng với một số dòng mặc định
+      function initializeTables() {
+        for (let i = 0; i < 5; i++) {
+          addRow("main");
+        }
+      }
+
+      // Thêm dòng mới vào bảng
+      function addRow(side) {
+        const tbody = document.getElementById(side + "TableBody");
+        const rowCount = tbody.children.length;
+        const row = document.createElement("tr");
+
+        // STT
+        const sttCell = document.createElement("td");
+        sttCell.textContent = rowCount + 1;
+        row.appendChild(sttCell);
+
+        // Các ô nhập liệu
+        ["meas", "cno", "ctns"].forEach((_, index) => {
+          const cell = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "form-control";
+
+          // Thêm sự kiện paste cho từng input
+          input.addEventListener("paste", async function (e) {
+            e.preventDefault();
+            try {
+              const text = e.clipboardData.getData("text");
+              const rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim()); // Lọc các dòng trống
+
+              // Lấy vị trí của ô hiện tại trong dòng
+              const currentCell = this;
+              const currentRow = currentCell.closest("tr");
+              const currentIndex = Array.from(
+                currentRow.querySelectorAll("input")
+              ).indexOf(currentCell);
+
+              // Lấy tbody để thêm dòng mới
+              const tbody = currentRow.closest("tbody");
+              const side = tbody.id.replace("TableBody", "");
+
+              // Xóa các dòng từ vị trí hiện tại
+              let nextRow = currentRow.nextElementSibling;
+              while (nextRow) {
+                const temp = nextRow.nextElementSibling;
+                tbody.removeChild(nextRow);
+                nextRow = temp;
+              }
+
+              // Xử lý từng dòng dữ liệu
+              rows.forEach((row, rowIndex) => {
+                const values = row.split("\t");
+
+                // Nếu là dòng đầu tiên, sử dụng dòng hiện tại
+                const targetRow = rowIndex === 0 ? currentRow : addRow(side);
+                const inputs = targetRow.querySelectorAll("input");
+
+                // Điền dữ liệu vào các ô, bắt đầu từ vị trí của ô được paste
+                values.forEach((value, colIndex) => {
+                  const inputIndex = (currentIndex + colIndex) % inputs.length;
+                  if (inputIndex < inputs.length) {
+                    inputs[inputIndex].value = value.trim();
+                  }
+                });
+              });
+
+              // Cập nhật lại số thứ tự
+              updateRowNumbers(tbody);
+            } catch (err) {
+              console.error("Paste error:", err);
+            }
+          });
+
+          cell.appendChild(input);
+          row.appendChild(cell);
+        });
+
+        tbody.appendChild(row);
+        return row;
+      }
+
+      // Hàm cập nhật số thứ tự
+      function updateRowNumbers(tbody) {
+        Array.from(tbody.children).forEach((row, index) => {
+          row.firstElementChild.textContent = index + 1;
+        });
+      }
+
+      // Xóa tất cả dữ liệu trong bảng
+      function clearTable(side) {
+        const tbody = document.getElementById(side + "TableBody");
+        tbody.innerHTML = "";
+        addRow(side); // Thêm một dòng trống
+      }
+
+      // Dán dữ liệu từ clipboard
+      async function pasteFromClipboard(side) {
+        try {
+          const text = await navigator.clipboard.readText();
+          const rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim()); // Lọc các dòng trống
+          const tbody = document.getElementById(side + "TableBody");
+          tbody.innerHTML = "";
+
+          let currentRow = null;
+          let currentInputs = null;
+
+          rows.forEach((row, index) => {
+            const columns = row.split("\t");
+
+            // Nếu dòng có đủ 3 cột hoặc là dòng đầu tiên
+            if (columns.length >= 3 || !currentRow) {
+              addRow(side);
+              currentRow = tbody.lastElementChild;
+              currentInputs = currentRow.querySelectorAll("input");
+
+              columns.forEach((value, colIndex) => {
+                if (colIndex < currentInputs.length) {
+                  // Loại bỏ dấu ngoặc kép nếu có
+                  let cleanValue = value.replace(/^"|"$/g, "").trim();
+                  currentInputs[colIndex].value = cleanValue;
+                }
+              });
+            } else {
+              // Nếu dòng không đủ cột, giả định đây là phần tiếp theo của C/NO
+              if (currentInputs && currentInputs[1]) {
+                const existingValue = currentInputs[1].value;
+                const newValue = columns[0].replace(/^"|"$/g, "").trim();
+                currentInputs[1].value = existingValue + "," + newValue;
+              }
+            }
+          });
+        } catch (err) {
+          console.error("Paste error:", err);
+          alert(
+            "Không thể truy cập clipboard. Vui lòng kiểm tra quyền truy cập."
+          );
+        }
+      }
+
+      // Đếm số lượng số trong một chuỗi có dạng "1-5,7-10,19,21"
+      function countNumbers(str) {
+        if (!str) return 0;
+
+        let count = 0;
+        const parts = str.split(",");
+
+        parts.forEach((part) => {
+          part = part.trim();
+          if (part.includes("-")) {
+            // Xử lý dải số (vd: "1-5")
+            const [start, end] = part.split("-").map((num) => parseInt(num));
+            if (!isNaN(start) && !isNaN(end)) {
+              count += end - start + 1;
+            }
+          } else {
+            // Xử lý số đơn lẻ
+            if (part && !isNaN(parseInt(part))) {
+              count++;
+            }
+          }
+        });
+
+        return count;
+      }
+
+      // Lấy dữ liệu từ bảng
+      function getTableData(side) {
+        const tbody = document.getElementById(side + "TableBody");
+        const data = [];
+
+        tbody.querySelectorAll("tr").forEach((row, index) => {
+          const inputs = row.querySelectorAll("input");
+          const cno = inputs[1].value.trim(); // C/NO
+          const ctns = inputs[2].value.trim(); // CTNs
+
+          if (cno || ctns) {
+            // Chỉ xử lý các dòng có dữ liệu
+            const cnoCount = countNumbers(cno);
+
+            data.push({
+              rowIndex: index + 1,
+              cno: cno,
+              ctns: ctns,
+              cnoCount: cnoCount,
+              ctnsValue: parseInt(ctns) || 0,
+            });
+          }
+        });
+        return data;
+      }
+
+      // Phân tích dữ liệu
+      function analyzeData() {
+        const data = getTableData("main");
+        let hasError = false;
+        let message = "";
+        const errors = [];
+
+        data.forEach((row) => {
+          if (row.cnoCount !== row.ctnsValue) {
+            hasError = true;
+            errors.push(
+              `Dòng ${row.rowIndex}: Số lượng trong C/NO (${row.cnoCount}) không khớp với CTNs (${row.ctnsValue})`
+            );
+          }
+        });
+
+        // Hiển thị kết quả
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+
+        if (hasError) {
+          resultDiv.className = "alert alert-danger mt-4";
+          message = `<strong>Phát hiện lỗi:</strong><br>` + errors.join("<br>");
+        } else if (data.length === 0) {
+          resultDiv.className = "alert alert-warning mt-4";
+          message = "Không có dữ liệu để phân tích";
+        } else {
+          resultDiv.className = "alert alert-success mt-4";
+          message = `<strong>Kết quả kiểm tra:</strong><br>Tất cả ${data.length} dòng đều có số lượng C/NO khớp với CTNs`;
+        }
+
+        document.getElementById("analysisResult").innerHTML = message;
+      }
+
+      // Kiểm tra tính liên tục
+      function checkContinuity() {
+        const mainTableRows =
+          document.getElementById("mainTableBody").children.length;
+
+        // Tạo modal cho bảng kiểm tra tính liên tục
+        if (!document.getElementById("continuityModal")) {
+          const modalHtml = `
+            <div class="modal fade" id="continuityModal" tabindex="-1">
+              <div class="modal-dialog modal-lg">
+                <div class="modal-content">
+                  <div class="modal-header bg-primary text-white">
+                    <h5 class="modal-title">Kiểm Tra Tính Liên Tục</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                  </div>
+                  <div class="modal-body">
+                    <div class="table-container">
+                      <table class="excel-table" id="continuityTable">
+                        <thead>
+                          <tr>
+                            <th style="width: 60px">STT</th>
+                            <th>Dãy Số</th>
+                          </tr>
+                        </thead>
+                        <tbody id="continuityTableBody">
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+                    <button type="button" class="btn btn-primary" onclick="analyzeContinuity()">
+                      <i class="fas fa-check"></i> Kiểm Tra
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          document.body.insertAdjacentHTML("beforeend", modalHtml);
+        }
+
+        // Xóa và tạo lại các dòng trong bảng tính liên tục
+        const continuityBody = document.getElementById("continuityTableBody");
+        continuityBody.innerHTML = "";
+
+        // Thêm số dòng tương ứng với bảng chính
+        for (let i = 0; i < mainTableRows; i++) {
+          const row = document.createElement("tr");
+
+          // STT
+          const sttCell = document.createElement("td");
+          sttCell.textContent = i + 1;
+          row.appendChild(sttCell);
+
+          // Ô nhập dãy số
+          const inputCell = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "form-control";
+
+          // Thêm sự kiện paste cho input
+          input.addEventListener("paste", async function (e) {
+            e.preventDefault();
+            try {
+              const text = e.clipboardData.getData("text");
+              const rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim()); // Lọc các dòng trống
+
+              // Lấy vị trí của ô hiện tại
+              const currentRow = this.closest("tr");
+              const tbody = currentRow.closest("tbody");
+              let targetRow = currentRow;
+
+              // Xử lý từng dòng dữ liệu
+              rows.forEach((row, index) => {
+                if (index === 0) {
+                  // Dòng đầu tiên paste vào ô hiện tại
+                  this.value = row.trim();
+                } else {
+                  // Các dòng tiếp theo paste vào các ô bên dưới
+                  targetRow = targetRow.nextElementSibling;
+                  if (targetRow) {
+                    const nextInput = targetRow.querySelector("input");
+                    if (nextInput) {
+                      nextInput.value = row.trim();
+                    }
+                  }
+                }
+              });
+            } catch (err) {
+              console.error("Paste error:", err);
+              alert("Có lỗi xảy ra khi paste dữ liệu");
+            }
+          });
+
+          inputCell.appendChild(input);
+          row.appendChild(inputCell);
+
+          continuityBody.appendChild(row);
+        }
+
+        // Hiển thị modal
+        const modal = new bootstrap.Modal(
+          document.getElementById("continuityModal")
+        );
+        modal.show();
+      }
+
+      // Chuyển đổi dãy số thành mảng các số
+      function parseNumberSequence(str) {
+        if (!str) return [];
+
+        const numbers = [];
+        const parts = str.split(",");
+
+        parts.forEach((part) => {
+          part = part.trim();
+          if (part.includes("-")) {
+            const [start, end] = part.split("-").map((num) => parseInt(num));
+            if (!isNaN(start) && !isNaN(end)) {
+              for (let i = start; i <= end; i++) {
+                numbers.push(i);
+              }
+            }
+          } else {
+            const num = parseInt(part);
+            if (!isNaN(num)) {
+              numbers.push(num);
+            }
+          }
+        });
+
+        return numbers.sort((a, b) => a - b);
+      }
+
+      // Kiểm tra tính liên tục của hai dãy số
+      function checkSequenceContinuity(seq1, seq2) {
+        // Gộp hai dãy số và sắp xếp
+        const allNumbers = [...new Set([...seq1, ...seq2])].sort(
+          (a, b) => a - b
+        );
+
+        if (allNumbers.length === 0)
+          return { continuous: false, message: "Không có dữ liệu" };
+
+        // Kiểm tra tính liên tục
+        for (let i = 1; i < allNumbers.length; i++) {
+          if (allNumbers[i] - allNumbers[i - 1] > 1) {
+            return {
+              continuous: false,
+              message: `Không liên tục tại ${allNumbers[i - 1]} và ${
+                allNumbers[i]
+              }`,
+              min: allNumbers[0],
+              max: allNumbers[allNumbers.length - 1],
+            };
+          }
+        }
+
+        return {
+          continuous: true,
+          message: `Liên tục từ ${allNumbers[0]} đến ${
+            allNumbers[allNumbers.length - 1]
+          }`,
+          min: allNumbers[0],
+          max: allNumbers[allNumbers.length - 1],
+        };
+      }
+
+      // Hàm phân tích tính liên tục
+      function analyzeContinuity() {
+        const mainData = getTableData("main");
+        const continuityData = [];
+        let hasError = false;
+        let messages = [];
+
+        // Thu thập dữ liệu từ bảng kiểm tra tính liên tục
+        document
+          .querySelectorAll("#continuityTableBody tr")
+          .forEach((row, index) => {
+            const input = row.querySelector("input");
+            if (input && input.value.trim()) {
+              continuityData.push({
+                rowIndex: index + 1,
+                numbers: input.value.trim(),
+              });
+            }
+          });
+
+        // Kiểm tra từng cặp dãy số
+        mainData.forEach((mainRow, index) => {
+          const continuityRow = continuityData[index];
+          if (continuityRow) {
+            const seq1 = parseNumberSequence(mainRow.cno);
+            const seq2 = parseNumberSequence(continuityRow.numbers);
+            const result = checkSequenceContinuity(seq1, seq2);
+
+            if (!result.continuous) {
+              hasError = true;
+              messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
+            } else {
+              messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
+            }
+          }
+        });
+
+        // Hiển thị kết quả
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+
+        if (messages.length === 0) {
+          resultDiv.className = "alert alert-warning mt-4";
+          document.getElementById("analysisResult").innerHTML =
+            "Không có dữ liệu để phân tích";
+        } else {
+          if (hasError) {
+            resultDiv.className = "alert alert-danger mt-4";
+            document.getElementById("analysisResult").innerHTML =
+              `<strong>Phát hiện lỗi:</strong><br>` + messages.join("<br>");
+          } else {
+            resultDiv.className = "alert alert-success mt-4";
+            document.getElementById("analysisResult").innerHTML =
+              `<strong>Kết quả kiểm tra:</strong><br>` + messages.join("<br>");
+          }
+        }
+
+        // Đóng modal
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("continuityModal")
+        );
+        modal.hide();
+      }
+
+      // Khởi tạo bảng khi trang được tải
+      document.addEventListener("DOMContentLoaded", initializeTables);
+    </script>
+  </body>
+</html>
