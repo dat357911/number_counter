@@ -6,10 +6,17 @@ def parse_number_sequence(sequence):
     if not sequence:
         return []
     
+    # Loại bỏ dấu ngoặc kép và khoảng trắng không cần thiết
+    sequence = sequence.replace('"', '').replace("'", '')
+    # Loại bỏ khoảng trắng và xuống dòng
+    sequence = ''.join(sequence.split())
+    
     numbers = set()
-    parts = sequence.replace(" ", "").split(",")
+    parts = sequence.split(",")
     
     for part in parts:
+        if not part:  # Bỏ qua phần tử rỗng
+            continue
         if "-" in part:
             try:
                 start, end = map(int, part.split("-"))
@@ -34,8 +41,10 @@ def check_continuity(sequence1, sequence2):
         return False, "Cần ít nhất hai số để kiểm tra tính liên tục"
     
     # Kiểm tra xem có số nào bị trùng giữa hai dãy không
-    if set(sequence1) & set(sequence2):
-        return False, "Hai dãy số không được có số trùng nhau"
+    duplicates = set(sequence1) & set(sequence2)
+    if duplicates:
+        duplicate_list = sorted(list(duplicates))
+        return False, f"Phát hiện số trùng nhau giữa hai dãy: {', '.join(map(str, duplicate_list))}"
     
     # Kiểm tra tính liên tục
     for i in range(len(all_numbers) - 1):

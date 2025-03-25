@@ -275,20 +275,73 @@
             e.preventDefault();
             try {
               const text = e.clipboardData.getData("text");
-              const rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim()); // Lọc các dòng trống
 
-              // Lấy vị trí của ô hiện tại trong dòng
+              // Tách dữ liệu thành ma trận 2D
+              let rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim());
+              const matrix = rows.map((row) => row.split("\t"));
+
+              // Xác định vị trí paste
               const currentCell = this;
               const currentRow = currentCell.closest("tr");
               const currentIndex = Array.from(
                 currentRow.querySelectorAll("input")
               ).indexOf(currentCell);
-
-              // Lấy tbody để thêm dòng mới
               const tbody = currentRow.closest("tbody");
               const side = tbody.id.replace("TableBody", "");
 
-              // Xóa các dòng từ vị trí hiện tại
+              // Phân tích cấu trúc dữ liệu
+              const columnCount = Math.max(...matrix.map((row) => row.length));
+              let processedData = [];
+              let currentGroup = { meas: "", cno: [], ctns: "" };
+
+              // Xử lý từng dòng dữ liệu
+              matrix.forEach((row, rowIndex) => {
+                // Nếu dòng có đủ 3 cột hoặc có cột MEAS
+                if (row.length >= 3 || (row.length >= 1 && row[0].trim())) {
+                  // Lưu nhóm dữ liệu trước đó nếu có
+                  if (currentGroup.meas || currentGroup.cno.length > 0) {
+                    processedData.push({
+                      meas: currentGroup.meas,
+                      cno: currentGroup.cno.join(""),
+                      ctns: currentGroup.ctns,
+                    });
+                  }
+                  // Tạo nhóm mới
+                  currentGroup = {
+                    meas: row[0] ? row[0].trim() : "",
+                    cno: row[1] ? [row[1].trim()] : [],
+                    ctns: row[2] ? row[2].trim() : "",
+                  };
+                } else if (row.length >= 1) {
+                  // Nếu là dòng tiếp theo và có giá trị
+                  if (row.length >= 2) {
+                    // Nếu dòng có ít nhất 2 cột
+                    if (row[1] && row[1].trim()) {
+                      currentGroup.cno.push(row[1].trim());
+                    } else {
+                      currentGroup.cno.push(row[0].trim());
+                    }
+                    // Cập nhật CTNs nếu có
+                    if (row.length >= 3 && row[2] && row[2].trim()) {
+                      currentGroup.ctns = row[2].trim();
+                    }
+                  } else {
+                    // Nếu chỉ có 1 cột, đây là phần tiếp theo của C/NO
+                    currentGroup.cno.push(row[0].trim());
+                  }
+                }
+              });
+
+              // Thêm nhóm cuối cùng nếu có
+              if (currentGroup.meas || currentGroup.cno.length > 0) {
+                processedData.push({
+                  meas: currentGroup.meas,
+                  cno: currentGroup.cno.join(""),
+                  ctns: currentGroup.ctns,
+                });
+              }
+
+              // Xóa các dòng hiện tại
               let nextRow = currentRow.nextElementSibling;
               while (nextRow) {
                 const temp = nextRow.nextElementSibling;
@@ -296,24 +349,24 @@
                 nextRow = temp;
               }
 
-              // Xử lý từng dòng dữ liệu
-              rows.forEach((row, rowIndex) => {
-                const values = row.split("\t");
-
-                // Nếu là dòng đầu tiên, sử dụng dòng hiện tại
-                const targetRow = rowIndex === 0 ? currentRow : addRow(side);
+              // Điền dữ liệu đã xử lý vào bảng
+              processedData.forEach((data, index) => {
+                const targetRow = index === 0 ? currentRow : addRow(side);
                 const inputs = targetRow.querySelectorAll("input");
 
-                // Điền dữ liệu vào các ô, bắt đầu từ vị trí của ô được paste
-                values.forEach((value, colIndex) => {
-                  const inputIndex = (currentIndex + colIndex) % inputs.length;
-                  if (inputIndex < inputs.length) {
-                    inputs[inputIndex].value = value.trim();
-                  }
-                });
+                // Điền dữ liệu vào từng ô và loại bỏ dấu ngoặc kép
+                if (data.meas)
+                  inputs[0].value = data.meas.replace(/^"|"$/g, "").trim();
+                if (data.cno)
+                  inputs[1].value = data.cno
+                    .replace(/^"|"$/g, "")
+                    .replace(/\s+/g, "")
+                    .trim();
+                if (data.ctns)
+                  inputs[2].value = data.ctns.replace(/^"|"$/g, "").trim();
               });
 
-              // Cập nhật lại số thứ tự
+              // Cập nhật số thứ tự
               updateRowNumbers(tbody);
             } catch (err) {
               console.error("Paste error:", err);
@@ -459,7 +512,10 @@
         resultDiv.style.display = "block";
 
         if (hasError) {
-          resultDiv.className = "alert alert-danger mt-4";
+          resultDiv.className =
+            data.length === errors.length
+              ? "alert alert-danger mt-4"
+              : "alert alert-warning mt-4";
           message = `<strong>Phát hiện lỗi:</strong><br>` + errors.join("<br>");
         } else if (data.length === 0) {
           resultDiv.className = "alert alert-warning mt-4";
@@ -502,6 +558,9 @@
                     </div>
                   </div>
                   <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="clearContinuityTable()">
+                      <i class="fas fa-trash"></i> Xóa Dữ Liệu
+                    </button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
                     <button type="button" class="btn btn-primary" onclick="analyzeContinuity()">
                       <i class="fas fa-check"></i> Kiểm Tra
@@ -514,63 +573,65 @@
           document.body.insertAdjacentHTML("beforeend", modalHtml);
         }
 
-        // Xóa và tạo lại các dòng trong bảng tính liên tục
+        // Xóa và tạo lại các dòng trong bảng tính liên tục nếu bảng trống
         const continuityBody = document.getElementById("continuityTableBody");
-        continuityBody.innerHTML = "";
+        if (!continuityBody.children.length) {
+          // Thêm số dòng tương ứng với bảng chính
+          for (let i = 0; i < mainTableRows; i++) {
+            const row = document.createElement("tr");
 
-        // Thêm số dòng tương ứng với bảng chính
-        for (let i = 0; i < mainTableRows; i++) {
-          const row = document.createElement("tr");
+            // STT
+            const sttCell = document.createElement("td");
+            sttCell.textContent = i + 1;
+            row.appendChild(sttCell);
 
-          // STT
-          const sttCell = document.createElement("td");
-          sttCell.textContent = i + 1;
-          row.appendChild(sttCell);
+            // Ô nhập dãy số
+            const inputCell = document.createElement("td");
+            const input = document.createElement("input");
+            input.type = "text";
+            input.className = "form-control";
 
-          // Ô nhập dãy số
-          const inputCell = document.createElement("td");
-          const input = document.createElement("input");
-          input.type = "text";
-          input.className = "form-control";
+            // Thêm sự kiện paste cho input
+            input.addEventListener("paste", async function (e) {
+              e.preventDefault();
+              try {
+                const text = e.clipboardData.getData("text");
+                const rows = text
+                  .split(/\r\n|\r|\n/)
+                  .filter((row) => row.trim()); // Lọc các dòng trống
 
-          // Thêm sự kiện paste cho input
-          input.addEventListener("paste", async function (e) {
-            e.preventDefault();
-            try {
-              const text = e.clipboardData.getData("text");
-              const rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim()); // Lọc các dòng trống
+                // Lấy vị trí của ô hiện tại
+                const currentRow = this.closest("tr");
+                const tbody = currentRow.closest("tbody");
+                let targetRow = currentRow;
 
-              // Lấy vị trí của ô hiện tại
-              const currentRow = this.closest("tr");
-              const tbody = currentRow.closest("tbody");
-              let targetRow = currentRow;
-
-              // Xử lý từng dòng dữ liệu
-              rows.forEach((row, index) => {
-                if (index === 0) {
-                  // Dòng đầu tiên paste vào ô hiện tại
-                  this.value = row.trim();
-                } else {
-                  // Các dòng tiếp theo paste vào các ô bên dưới
-                  targetRow = targetRow.nextElementSibling;
-                  if (targetRow) {
-                    const nextInput = targetRow.querySelector("input");
-                    if (nextInput) {
-                      nextInput.value = row.trim();
+                // Xử lý từng dòng dữ liệu
+                rows.forEach((row, index) => {
+                  if (index === 0) {
+                    // Dòng đầu tiên paste vào ô hiện tại
+                    this.value = row.trim();
+                  } else {
+                    // Các dòng tiếp theo paste vào các ô bên dưới
+                    targetRow = targetRow.nextElementSibling;
+                    if (targetRow) {
+                      const nextInput = targetRow.querySelector("input");
+                      if (nextInput) {
+                        nextInput.value = row.trim();
+                      }
                     }
                   }
-                }
-              });
-            } catch (err) {
-              console.error("Paste error:", err);
-              alert("Có lỗi xảy ra khi paste dữ liệu");
-            }
-          });
+                });
+              } catch (err) {
+                console.error("Paste error:", err);
+                alert("Có lỗi xảy ra khi paste dữ liệu");
+              }
+            });
 
-          inputCell.appendChild(input);
-          row.appendChild(inputCell);
+            inputCell.appendChild(input);
+            row.appendChild(inputCell);
 
-          continuityBody.appendChild(row);
+            continuityBody.appendChild(row);
+          }
         }
 
         // Hiển thị modal
@@ -578,6 +639,160 @@
           document.getElementById("continuityModal")
         );
         modal.show();
+      }
+
+      // Hàm xóa dữ liệu bảng kiểm tra tính liên tục
+      function clearContinuityTable() {
+        const inputs = document.querySelectorAll("#continuityTableBody input");
+        inputs.forEach((input) => {
+          input.value = "";
+        });
+      }
+
+      // Hàm phân tích tính liên tục
+      function analyzeContinuity() {
+        const mainData = getTableData("main");
+        const continuityData = [];
+        let hasError = false;
+        let messages = [];
+        let hasDuplicateError = false;
+        let duplicateMessages = [];
+        let totalRows = 0;
+        let errorRows = 0;
+
+        // Thu thập dữ liệu từ bảng kiểm tra tính liên tục
+        document
+          .querySelectorAll("#continuityTableBody tr")
+          .forEach((row, index) => {
+            const input = row.querySelector("input");
+            if (input && input.value.trim()) {
+              continuityData.push({
+                rowIndex: index + 1,
+                numbers: input.value.trim(),
+              });
+            }
+          });
+
+        // Kiểm tra số trùng trong từng dòng và giữa hai dãy
+        mainData.forEach((mainRow, index) => {
+          const continuityRow = continuityData[index];
+          if (continuityRow) {
+            totalRows++;
+            let hasRowError = false;
+            const seq1 = parseNumberSequence(mainRow.cno);
+            const seq2 = parseNumberSequence(continuityRow.numbers);
+
+            // Kiểm tra số trùng trong dãy số thứ nhất
+            const duplicates1 = findDuplicates(seq1);
+            if (duplicates1.length > 0) {
+              hasDuplicateError = true;
+              hasRowError = true;
+              duplicateMessages.push(
+                `Dòng ${
+                  mainRow.rowIndex
+                } - Dãy số thứ nhất có số trùng: ${duplicates1.join(", ")}`
+              );
+            }
+
+            // Kiểm tra số trùng trong dãy số thứ hai
+            const duplicates2 = findDuplicates(seq2);
+            if (duplicates2.length > 0) {
+              hasDuplicateError = true;
+              hasRowError = true;
+              duplicateMessages.push(
+                `Dòng ${
+                  mainRow.rowIndex
+                } - Dãy số thứ hai có số trùng: ${duplicates2.join(", ")}`
+              );
+            }
+
+            // Kiểm tra số trùng giữa hai dãy
+            const duplicatesBetween = findDuplicatesBetweenArrays(seq1, seq2);
+            if (duplicatesBetween.length > 0) {
+              hasDuplicateError = true;
+              hasRowError = true;
+              duplicateMessages.push(
+                `Dòng ${
+                  mainRow.rowIndex
+                } - Số trùng giữa hai dãy: ${duplicatesBetween.join(", ")}`
+              );
+            }
+
+            // Kiểm tra tính liên tục nếu không có số trùng
+            if (
+              duplicates1.length === 0 &&
+              duplicates2.length === 0 &&
+              duplicatesBetween.length === 0
+            ) {
+              const result = checkSequenceContinuity(seq1, seq2);
+              if (!result.continuous) {
+                hasError = true;
+                hasRowError = true;
+                messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
+              } else {
+                messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
+              }
+            }
+
+            if (hasRowError) {
+              errorRows++;
+            }
+          }
+        });
+
+        // Hiển thị kết quả
+        const resultDiv = document.getElementById("result");
+        resultDiv.style.display = "block";
+
+        if (totalRows === 0) {
+          resultDiv.className = "alert alert-warning mt-4";
+          document.getElementById("analysisResult").innerHTML =
+            "Không có dữ liệu để phân tích";
+        } else {
+          let finalMessage = "";
+
+          // Hiển thị thông báo về số trùng nếu có
+          if (hasDuplicateError) {
+            finalMessage +=
+              `<strong>Phát hiện số trùng:</strong><br>` +
+              duplicateMessages.join("<br>") +
+              "<br><br>";
+          }
+
+          // Hiển thị kết quả kiểm tra tính liên tục
+          if (messages.length > 0) {
+            finalMessage +=
+              `<strong>Kết quả kiểm tra tính liên tục:</strong><br>` +
+              messages.join("<br>");
+          }
+
+          document.getElementById("analysisResult").innerHTML = finalMessage;
+
+          // Xác định màu thông báo
+          if (errorRows === 0) {
+            resultDiv.className = "alert alert-success mt-4"; // Tất cả đúng
+          } else if (errorRows === totalRows) {
+            resultDiv.className = "alert alert-danger mt-4"; // Tất cả sai
+          } else {
+            resultDiv.className = "alert alert-warning mt-4"; // Một số đúng, một số sai
+          }
+        }
+      }
+
+      // Hàm tìm số trùng trong một dãy số
+      function findDuplicates(numbers) {
+        const seen = new Set();
+        const duplicates = new Set();
+
+        numbers.forEach((num) => {
+          if (seen.has(num)) {
+            duplicates.add(num);
+          } else {
+            seen.add(num);
+          }
+        });
+
+        return Array.from(duplicates).sort((a, b) => a - b);
       }
 
       // Chuyển đổi dãy số thành mảng các số
@@ -641,72 +856,73 @@
         };
       }
 
-      // Hàm phân tích tính liên tục
-      function analyzeContinuity() {
-        const mainData = getTableData("main");
-        const continuityData = [];
-        let hasError = false;
-        let messages = [];
+      // Hàm tìm số trùng giữa hai mảng
+      function findDuplicatesBetweenArrays(arr1, arr2) {
+        const set1 = new Set(arr1);
+        return arr2.filter((num) => set1.has(num)).sort((a, b) => a - b);
+      }
 
-        // Thu thập dữ liệu từ bảng kiểm tra tính liên tục
-        document
-          .querySelectorAll("#continuityTableBody tr")
-          .forEach((row, index) => {
-            const input = row.querySelector("input");
-            if (input && input.value.trim()) {
-              continuityData.push({
-                rowIndex: index + 1,
-                numbers: input.value.trim(),
-              });
+      // Khởi tạo bảng khi trang được tải
+      document.addEventListener("DOMContentLoaded", function () {
+        initializeTables();
+
+        // Khởi tạo tooltips
+        var tooltipTriggerList = [].slice.call(
+          document.querySelectorAll('[data-bs-toggle="tooltip"]')
+        );
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+          return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+
+        // Thêm xử lý phím tắt cho toàn bộ trang
+        document.addEventListener("keydown", function (event) {
+          // Kiểm tra nếu đang focus vào input
+          const activeElement = document.activeElement;
+          const isInputFocused = activeElement.tagName === "INPUT";
+
+          // Xử lý phím Enter
+          if (event.key === "Enter") {
+            // Nếu modal kiểm tra tính liên tục đang mở
+            const continuityModal = document.getElementById("continuityModal");
+            if (continuityModal && continuityModal.classList.contains("show")) {
+              analyzeContinuity();
+              return;
             }
-          });
 
-        // Kiểm tra từng cặp dãy số
-        mainData.forEach((mainRow, index) => {
-          const continuityRow = continuityData[index];
-          if (continuityRow) {
-            const seq1 = parseNumberSequence(mainRow.cno);
-            const seq2 = parseNumberSequence(continuityRow.numbers);
-            const result = checkSequenceContinuity(seq1, seq2);
+            // Nếu không, thực hiện phân tích dữ liệu
+            if (isInputFocused) {
+              analyzeData();
+            }
+          }
 
-            if (!result.continuous) {
-              hasError = true;
-              messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
-            } else {
-              messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
+          // Xử lý phím Escape
+          if (event.key === "Escape") {
+            // Nếu modal kiểm tra tính liên tục đang mở
+            const continuityModal = document.getElementById("continuityModal");
+            if (continuityModal && continuityModal.classList.contains("show")) {
+              const modal = bootstrap.Modal.getInstance(continuityModal);
+              modal.hide();
+              return;
+            }
+
+            // Nếu đang focus vào input, blur input đó
+            if (isInputFocused) {
+              activeElement.blur();
             }
           }
         });
 
-        // Hiển thị kết quả
-        const resultDiv = document.getElementById("result");
-        resultDiv.style.display = "block";
-
-        if (messages.length === 0) {
-          resultDiv.className = "alert alert-warning mt-4";
-          document.getElementById("analysisResult").innerHTML =
-            "Không có dữ liệu để phân tích";
-        } else {
-          if (hasError) {
-            resultDiv.className = "alert alert-danger mt-4";
-            document.getElementById("analysisResult").innerHTML =
-              `<strong>Phát hiện lỗi:</strong><br>` + messages.join("<br>");
-          } else {
-            resultDiv.className = "alert alert-success mt-4";
-            document.getElementById("analysisResult").innerHTML =
-              `<strong>Kết quả kiểm tra:</strong><br>` + messages.join("<br>");
-          }
+        // Thêm tooltip cho các nút
+        const analyzeBtn = document.querySelector(".btn-analyze");
+        if (analyzeBtn) {
+          analyzeBtn.title = "Nhấn Enter để thực thi";
         }
 
-        // Đóng modal
-        const modal = bootstrap.Modal.getInstance(
-          document.getElementById("continuityModal")
-        );
-        modal.hide();
-      }
-
-      // Khởi tạo bảng khi trang được tải
-      document.addEventListener("DOMContentLoaded", initializeTables);
+        const closeBtn = document.querySelector('[data-bs-dismiss="modal"]');
+        if (closeBtn) {
+          closeBtn.title = "Nhấn ESC để đóng";
+        }
+      });
     </script>
   </body>
 </html>
