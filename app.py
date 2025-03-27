@@ -11,17 +11,23 @@ import shutil
 from datetime import datetime
 import time
 import json
+import platform
 
 # Cấu hình đường dẫn
-POPPLER_BASE = r'C:\Program Files\poppler-23.11.0'
-POPPLER_PATH = os.path.join(POPPLER_BASE, 'Library', 'bin')
-pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+if platform.system() == 'Windows':
+    POPPLER_BASE = r'C:\Program Files\poppler-23.11.0'
+    POPPLER_PATH = os.path.join(POPPLER_BASE, 'Library', 'bin')
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+else:
+    # Cấu hình cho Linux
+    POPPLER_PATH = '/usr/bin'
+    pytesseract.pytesseract.tesseract_cmd = '/usr/bin/tesseract'
 
 # Kiểm tra các file cần thiết
 REQUIRED_FILES = [
     'pdftoppm.exe',
     'pdfinfo.exe'
-]
+] if platform.system() == 'Windows' else []
 
 # Biến global để theo dõi tiến trình
 progress_data = {
@@ -31,25 +37,32 @@ progress_data = {
 }
 
 def check_poppler_installation():
-    if not os.path.exists(POPPLER_PATH):
-        raise RuntimeError(f'Không tìm thấy thư mục Poppler tại {POPPLER_PATH}')
-    
-    missing_files = []
-    for file in REQUIRED_FILES:
-        if not os.path.exists(os.path.join(POPPLER_PATH, file)):
-            missing_files.append(file)
-    
-    if missing_files:
-        raise RuntimeError(f'Thiếu các file sau trong thư mục Poppler: {", ".join(missing_files)}')
+    if platform.system() == 'Windows':
+        if not os.path.exists(POPPLER_PATH):
+            raise RuntimeError(f'Không tìm thấy thư mục Poppler tại {POPPLER_PATH}')
         
-    # Thêm thư mục bin và thư mục chứa DLL vào PATH
-    if POPPLER_PATH not in os.environ['PATH']:
-        os.environ['PATH'] = POPPLER_PATH + os.pathsep + os.environ['PATH']
-    
-    # Thêm thư mục Library vào PATH để tìm các DLL
-    library_path = os.path.dirname(POPPLER_PATH)  # Lấy thư mục Library
-    if library_path not in os.environ['PATH']:
-        os.environ['PATH'] = library_path + os.pathsep + os.environ['PATH']
+        missing_files = []
+        for file in REQUIRED_FILES:
+            if not os.path.exists(os.path.join(POPPLER_PATH, file)):
+                missing_files.append(file)
+        
+        if missing_files:
+            raise RuntimeError(f'Thiếu các file sau trong thư mục Poppler: {", ".join(missing_files)}')
+            
+        # Thêm thư mục bin và thư mục chứa DLL vào PATH
+        if POPPLER_PATH not in os.environ['PATH']:
+            os.environ['PATH'] = POPPLER_PATH + os.pathsep + os.environ['PATH']
+        
+        # Thêm thư mục Library vào PATH để tìm các DLL
+        library_path = os.path.dirname(POPPLER_PATH)  # Lấy thư mục Library
+        if library_path not in os.environ['PATH']:
+            os.environ['PATH'] = library_path + os.pathsep + os.environ['PATH']
+    else:
+        # Kiểm tra các công cụ cần thiết trên Linux
+        required_tools = ['pdftoppm', 'pdfinfo', 'tesseract']
+        for tool in required_tools:
+            if not shutil.which(tool):
+                raise RuntimeError(f'Không tìm thấy {tool}. Vui lòng cài đặt poppler-utils và tesseract-ocr')
 
 app = Flask(__name__)
 app.secret_key = 'your-secret-key-here'  # Thay đổi thành một key phức tạp hơn trong production
@@ -59,16 +72,17 @@ UPLOAD_FOLDER = 'temp'
 DEBUG_FOLDER = os.path.join(UPLOAD_FOLDER, 'debug')
 ALLOWED_EXTENSIONS = {'pdf'}
 
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
 app.config['MAX_CONTENT_LENGTH'] = None  # Bỏ giới hạn kích thước file
 
 # Thêm cấu hình cho thư mục archive
 ARCHIVE_FOLDER = 'archive'
-app.config['ARCHIVE_FOLDER'] = ARCHIVE_FOLDER
+app.config['ARCHIVE_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'archive')
 
 # Đảm bảo thư mục archive tồn tại
-if not os.path.exists(ARCHIVE_FOLDER):
-    os.makedirs(ARCHIVE_FOLDER)
+for folder in [app.config['UPLOAD_FOLDER'], app.config['ARCHIVE_FOLDER']]:
+    if not os.path.exists(folder):
+        os.makedirs(folder, exist_ok=True)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -341,190 +355,195 @@ def progress():
 
 @app.route('/upload-pdf', methods=['POST'])
 def upload_pdf():
-    # Reset tiến trình
-    reset_progress()
-    temp_path = None
-    
-    if 'file' not in request.files:
-        return jsonify({'error': 'Không tìm thấy file'}), 400
+    try:
+        # Reset tiến trình
+        reset_progress()
         
-    file = request.files['file']
-    if file.filename == '':
-        return jsonify({'error': 'Chưa chọn file'}), 400
-        
-    if file and allowed_file(file.filename):
-        try:
-            # Đảm bảo thư mục temp tồn tại
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
+        if 'file' not in request.files:
+            print("No file part in request")  # Thêm logging
+            return jsonify({'error': 'Không tìm thấy file'}), 400
             
-            # Xóa các file cũ trong thư mục temp nếu có
-            cleanup_folders()
+        file = request.files['file']
+        if file.filename == '':
+            print("No selected file")  # Thêm logging
+            return jsonify({'error': 'Chưa chọn file'}), 400
             
-            # Tạo lại thư mục temp nếu cần
-            if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                os.makedirs(app.config['UPLOAD_FOLDER'])
-            
-            # Lưu file tạm thời
-            filename = secure_filename(file.filename)
-            temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(temp_path)
-            
-            # Kiểm tra file PDF có bị mã hóa không
+        if file and allowed_file(file.filename):
             try:
-                pdf_reader = PyPDF2.PdfReader(temp_path)
-                if pdf_reader.is_encrypted:
-                    return jsonify({'error': 'File PDF được bảo vệ bằng mật khẩu. Vui lòng gỡ mật khẩu trước khi tải lên.'}), 400
+                # Log thông tin file
+                print(f"Processing file: {file.filename}")
                 
-                # Cập nhật tổng số trang
-                progress_data['total_pages'] = len(pdf_reader.pages)
+                # Đảm bảo thư mục temp tồn tại
+                if not os.path.exists(app.config['UPLOAD_FOLDER']):
+                    os.makedirs(app.config['UPLOAD_FOLDER'])
+                    print(f"Created upload folder: {app.config['UPLOAD_FOLDER']}")
                 
-            except Exception as e:
-                return jsonify({'error': f'File PDF không hợp lệ hoặc bị hỏng: {str(e)}'}), 400
+                # Xóa các file cũ
+                cleanup_folders()
+                
+                # Lưu file tạm thời
+                filename = secure_filename(file.filename)
+                temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(temp_path)
+                print(f"File saved to: {temp_path}")
+                
+                # Kiểm tra file PDF có bị mã hóa không
+                try:
+                    pdf_reader = PyPDF2.PdfReader(temp_path)
+                    if pdf_reader.is_encrypted:
+                        return jsonify({'error': 'File PDF được bảo vệ bằng mật khẩu. Vui lòng gỡ mật khẩu trước khi tải lên.'}), 400
+                    
+                    # Cập nhật tổng số trang
+                    progress_data['total_pages'] = len(pdf_reader.pages)
+                    
+                except Exception as e:
+                    return jsonify({'error': f'File PDF không hợp lệ hoặc bị hỏng: {str(e)}'}), 400
 
-            # Kiểm tra cài đặt Poppler
-            try:
-                check_poppler_installation()
-            except RuntimeError as e:
-                return jsonify({
-                    'error': f'Lỗi cài đặt Poppler: {str(e)}. Vui lòng cài đặt lại Poppler theo hướng dẫn.'
-                }), 500
-            
-            # Đọc PDF và chuyển thành ảnh với poppler_path
-            try:
-                print(f"Converting PDF to images: {temp_path}")
-                images = convert_from_path(
-                    temp_path,
-                    poppler_path=POPPLER_PATH,
-                    dpi=400,
-                    fmt='png',
-                    thread_count=4,
-                    grayscale=True,
-                    size=(2000, None)
-                )
-                print(f"Successfully converted {len(images)} pages")
+                # Kiểm tra cài đặt Poppler
+                try:
+                    check_poppler_installation()
+                except RuntimeError as e:
+                    return jsonify({
+                        'error': f'Lỗi cài đặt Poppler: {str(e)}. Vui lòng cài đặt lại Poppler theo hướng dẫn.'
+                    }), 500
                 
-                if not images:
-                    return jsonify({'error': 'Không thể đọc nội dung file PDF. File có thể rỗng hoặc bị hỏng.'}), 400
-                    
-            except Exception as e:
-                error_msg = str(e)
-                if "DLL" in error_msg:
-                    return jsonify({
-                        'error': 'Thiếu file DLL của Poppler. Vui lòng cài đặt lại Poppler và đảm bảo các file DLL được copy đúng vị trí.'
-                    }), 500
-                else:
-                    return jsonify({
-                        'error': f'Lỗi khi chuyển đổi PDF: {error_msg}. '
-                                f'Vui lòng kiểm tra lại file PDF và cài đặt Poppler tại {POPPLER_PATH}'
-                    }), 500
-            
-            # Phân tích từng trang
-            pages_info = []
-            original_order_numbers = []
-            print("\nAnalyzing pages:")
-            
-            for i, image in enumerate(images):
+                # Đọc PDF và chuyển thành ảnh với poppler_path
                 try:
-                    print(f"\nProcessing page {i+1}/{len(images)}")
+                    print(f"Converting PDF to images: {temp_path}")
+                    # Sử dụng cấu hình khác nhau cho Windows và Linux
+                    images = convert_from_path(
+                        temp_path,
+                        dpi=400,
+                        fmt='png',
+                        thread_count=4,
+                        grayscale=True,
+                        size=(2000, None)
+                    ) if platform.system() == 'Linux' else convert_from_path(
+                        temp_path,
+                        poppler_path=POPPLER_PATH,
+                        dpi=400,
+                        fmt='png',
+                        thread_count=4,
+                        grayscale=True,
+                        size=(2000, None)
+                    )
+                    print(f"Successfully converted {len(images)} pages")
                     
-                    # Lưu ảnh gốc để debug
-                    debug_path = os.path.join(app.config['UPLOAD_FOLDER'], 'debug')
-                    if not os.path.exists(debug_path):
-                        os.makedirs(debug_path)
-                    image.save(os.path.join(debug_path, f'page_{i+1}.png'))
-                    
-                    # Trích xuất Order Number
-                    order_number = extract_order_number(image)
-                    print(f"Found Order Number: {order_number}")
-                    
-                    if order_number:
-                        original_order_numbers.append(order_number)
-                        pages_info.append({
-                            'original_index': i,
-                            'order_number': order_number
-                        })
-                    
-                    # Cập nhật tiến trình
-                    progress_data['processed_pages'] = i + 1
-                    
+                    if not images:
+                        return jsonify({'error': 'Không thể đọc nội dung file PDF. File có thể rỗng hoặc bị hỏng.'}), 400
+                        
                 except Exception as e:
-                    print(f"Error processing page {i+1}: {str(e)}")
-                    continue
-            
-            # Đánh dấu hoàn thành
-            progress_data['complete'] = True
-            
-            # Kiểm tra kết quả trích xuất
-            if not pages_info:
+                    error_msg = str(e)
+                    if "DLL" in error_msg:
+                        return jsonify({
+                            'error': 'Thiếu file DLL của Poppler. Vui lòng cài đặt lại Poppler và đảm bảo các file DLL được copy đúng vị trí.'
+                        }), 500
+                    else:
+                        return jsonify({
+                            'error': f'Lỗi khi chuyển đổi PDF: {error_msg}. '
+                                    f'Vui lòng kiểm tra lại file PDF và cài đặt Poppler.'
+                        }), 500
+                
+                # Phân tích từng trang
+                pages_info = []
+                original_order_numbers = []
+                print("\nAnalyzing pages:")
+                
+                for i, image in enumerate(images):
+                    try:
+                        print(f"\nProcessing page {i+1}/{len(images)}")
+                        
+                        # Lưu ảnh gốc để debug
+                        debug_path = os.path.join(app.config['UPLOAD_FOLDER'], 'debug')
+                        if not os.path.exists(debug_path):
+                            os.makedirs(debug_path)
+                        image.save(os.path.join(debug_path, f'page_{i+1}.png'))
+                        
+                        # Trích xuất Order Number
+                        order_number = extract_order_number(image)
+                        print(f"Found Order Number: {order_number}")
+                        
+                        if order_number:
+                            original_order_numbers.append(order_number)
+                            pages_info.append({
+                                'original_index': i,
+                                'order_number': order_number
+                            })
+                        
+                        # Cập nhật tiến trình
+                        progress_data['processed_pages'] = i + 1
+                        
+                    except Exception as e:
+                        print(f"Error processing page {i+1}: {str(e)}")
+                        continue
+                
+                # Đánh dấu hoàn thành
+                progress_data['complete'] = True
+                
+                # Kiểm tra kết quả trích xuất
+                if not pages_info:
+                    return jsonify({
+                        'error': 'Không thể trích xuất Order Number từ bất kỳ trang nào. '
+                                'Vui lòng kiểm tra lại định dạng của file PDF hoặc chất lượng hình ảnh.'
+                    }), 400
+                
+                # Sắp xếp trang theo Order Number
+                def sort_key(page):
+                    if not page['order_number']:
+                        return (2, '')  # Trang không có Order Number
+                    prefix = page['order_number'][:4]
+                    return (
+                        0 if prefix == '0900' else 1,  # Ưu tiên 0900
+                        page['order_number']
+                    )
+                
+                pages_info.sort(key=sort_key)
+                sorted_order_numbers = [page['order_number'] for page in pages_info]
+                
+                # Tạo PDF mới với thứ tự đã sắp xếp
+                print("\nCreating new PDF...")
+                pdf_writer = PyPDF2.PdfWriter()
+                pdf_reader = PyPDF2.PdfReader(temp_path)
+                
+                for page in pages_info:
+                    try:
+                        pdf_writer.add_page(pdf_reader.pages[page['original_index']])
+                    except Exception as e:
+                        print(f"Error adding page {page['original_index']}: {str(e)}")
+                        continue
+                
+                # Lưu PDF tạm thời
+                output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'sorted_' + filename)
+                try:
+                    with open(output_path, 'wb') as output_file:
+                        pdf_writer.write(output_file)
+                    print("PDF created successfully")
+                except Exception as e:
+                    return jsonify({'error': f'Lỗi khi lưu file PDF: {str(e)}'}), 500
+                
+                # Lưu thông tin file đã xử lý vào session
+                session['processed_file'] = {
+                    'original_name': filename,
+                    'processed_name': 'sorted_' + filename,
+                    'path': output_path
+                }
+                
                 return jsonify({
-                    'error': 'Không thể trích xuất Order Number từ bất kỳ trang nào. '
-                            'Vui lòng kiểm tra lại định dạng của file PDF hoặc chất lượng hình ảnh.'
-                }), 400
-            
-            # Sắp xếp trang theo Order Number
-            def sort_key(page):
-                if not page['order_number']:
-                    return (2, '')  # Trang không có Order Number
-                prefix = page['order_number'][:4]
-                return (
-                    0 if prefix == '0900' else 1,  # Ưu tiên 0900
-                    page['order_number']
-                )
-            
-            pages_info.sort(key=sort_key)
-            sorted_order_numbers = [page['order_number'] for page in pages_info]
-            
-            # Tạo PDF mới với thứ tự đã sắp xếp
-            print("\nCreating new PDF...")
-            pdf_writer = PyPDF2.PdfWriter()
-            pdf_reader = PyPDF2.PdfReader(temp_path)
-            
-            for page in pages_info:
-                try:
-                    pdf_writer.add_page(pdf_reader.pages[page['original_index']])
-                except Exception as e:
-                    print(f"Error adding page {page['original_index']}: {str(e)}")
-                    continue
-            
-            # Lưu PDF tạm thời
-            output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'sorted_' + filename)
-            try:
-                with open(output_path, 'wb') as output_file:
-                    pdf_writer.write(output_file)
-                print("PDF created successfully")
+                    'success': True,
+                    'message': 'Đã xử lý thành công',
+                    'original_order_numbers': original_order_numbers,
+                    'sorted_order_numbers': sorted_order_numbers,
+                    'total_orders': len(sorted_order_numbers),
+                    'output_file': 'sorted_' + filename
+                })
+                
             except Exception as e:
-                return jsonify({'error': f'Lỗi khi lưu file PDF: {str(e)}'}), 500
-            
-            # Lưu thông tin file đã xử lý vào session
-            session['processed_file'] = {
-                'original_name': filename,
-                'processed_name': 'sorted_' + filename,
-                'path': output_path
-            }
-            
-            return jsonify({
-                'success': True,
-                'message': 'Đã xử lý thành công',
-                'original_order_numbers': original_order_numbers,
-                'sorted_order_numbers': sorted_order_numbers,
-                'total_orders': len(sorted_order_numbers),
-                'output_file': 'sorted_' + filename
-            })
-            
-        except Exception as e:
-            print(f"Error during processing: {str(e)}")
-            return jsonify({'error': f'Lỗi xử lý: {str(e)}'}), 500
-            
-        finally:
-            # Xóa file tạm
-            if os.path.exists(temp_path):
-                try:
-                    os.remove(temp_path)
-                except Exception as e:
-                    print(f"Error removing temp file: {str(e)}")
-            
-    return jsonify({'error': 'File không hợp lệ'}), 400
+                print(f"Error during file processing: {str(e)}")
+                return jsonify({'error': f'Lỗi xử lý file: {str(e)}'}), 500
+                
+    except Exception as e:
+        print(f"Unexpected error: {str(e)}")
+        return jsonify({'error': f'Lỗi không xác định: {str(e)}'}), 500
 
 def cleanup_folders():
     """Xóa hoàn toàn thư mục temp và debug"""
