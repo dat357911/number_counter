@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PDF Archive - Daniel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f0f2f5;
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
+      }
+      .navbar {
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px 0;
+      }
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+      .main-container {
+        max-width: 1200px;
+        margin: 30px auto;
+        padding: 0 20px;
+      }
+      .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        background: white;
+        margin-bottom: 30px;
+        overflow: hidden;
+      }
+      .card-header {
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+        color: white;
+        padding: 25px;
+        text-align: center;
+        border-bottom: none;
+      }
+      .card-header h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
+      }
+      .card-body {
+        padding: 40px;
+      }
+      .table {
+        margin-bottom: 0;
+      }
+      .table th {
+        background: #f8f9fa;
+        color: #1a237e;
+        font-weight: 600;
+        border-bottom: 2px solid #e3f2fd;
+      }
+      .table td {
+        vertical-align: middle;
+      }
+      .btn-download {
+        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+      .btn-download:hover {
+        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+        transform: translateY(-2px);
+        color: white;
+      }
+      .empty-message {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+        font-size: 1.1rem;
+      }
+      .back-button {
+        margin-bottom: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">Daniel</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle active"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-tools"></i> Tools
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="/number-analysis">
+                    <i class="fas fa-calculator"></i> Phân Tích Dãy Số</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/data-analysis">
+                    <i class="fas fa-table"></i> Phân Tích Dữ Liệu</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/pdf-analysis">
+                    <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item active" href="/archive">
+                    <i class="fas fa-archive"></i> PDF Archive</a
+                  >
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <div class="back-button">
+        <a href="/pdf-analysis" class="btn btn-primary">
+          <i class="fas fa-arrow-left"></i> Quay lại
+        </a>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2>PDF Archive</h2>
+        </div>
+        <div class="card-body">
+          {% if files %}
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Tên File</th>
+                  <th>Ngày tạo</th>
+                  <th>Kích thước</th>
+                  <th class="text-center">Tải xuống</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for file in files %}
+                <tr>
+                  <td>{{ file.name }}</td>
+                  <td>{{ file.date }}</td>
+                  <td>{{ file.size }}</td>
+                  <td class="text-center">
+                    <a
+                      href="{{ url_for('download_archived', filename=file.name) }}"
+                      class="btn btn-download"
+                      onclick="showDownloadToast()"
+                    >
+                      <i class="fas fa-download"></i> Download
+                    </a>
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="empty-message">
+            <i class="fas fa-folder-open fa-3x mb-3"></i>
+            <p>Chưa có file nào được lưu trữ</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div id="successToast" class="toast">
+      <i class="fas fa-check-circle"></i> File downloaded successfully!
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function showDownloadToast() {
+        const toast = document.getElementById("successToast");
+        setTimeout(() => {
+          toast.style.display = "block";
+          setTimeout(() => {
+            toast.style.display = "none";
+          }, 3000);
+        }, 500);
+      }
+    </script>
+  </body>
+</html>

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Phân Tích PDF - Daniel</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+    />
+    <style>
+      body {
+        background-color: #f0f2f5;
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
+      }
+      .main-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+      .navbar {
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px 0;
+      }
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+      .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        background: white;
+        margin-bottom: 30px;
+        overflow: hidden;
+      }
+      .card-header {
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
+        color: white;
+        padding: 25px;
+        text-align: center;
+        border-bottom: none;
+      }
+      .card-header h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
+      }
+      .card-body {
+        padding: 40px;
+      }
+      .order-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 30px;
+        background: #f8f9fa;
+        padding: 15px 20px;
+        border-radius: 12px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .order-count {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        margin: 0;
+      }
+      .order-count span {
+        font-weight: 600;
+        color: #0d47a1;
+        margin-left: 5px;
+      }
+      .order-columns {
+        display: flex;
+        gap: 30px;
+        margin: 30px 0;
+      }
+      .order-column {
+        flex: 1;
+        padding: 25px;
+        background: #ffffff;
+        border-radius: 15px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e0e0e0;
+      }
+      .order-number {
+        display: inline-block;
+        padding: 8px 12px;
+        margin: 5px;
+        background: #f8f9fa;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: "Consolas", monospace;
+        font-size: 14px;
+        color: #2c3e50;
+        transition: all 0.2s ease;
+      }
+      .order-number:hover {
+        background: #e3f2fd;
+        border-color: #90caf9;
+        transform: translateY(-1px);
+      }
+      .column-title {
+        color: #1a237e;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e3f2fd;
+        font-size: 1.2rem;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .column-title .count {
+        font-size: 0.9rem;
+        color: #5c6bc0;
+        background: #e3f2fd;
+        padding: 4px 10px;
+        border-radius: 20px;
+      }
+      .actions-container {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-bottom: 30px;
+      }
+      .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+      .btn-upload {
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        color: white;
+        border: none;
+      }
+      .btn-upload:hover {
+        background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+        transform: translateY(-2px);
+      }
+      .btn-download {
+        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+        color: white;
+        border: none;
+      }
+      .btn-download:hover {
+        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+        transform: translateY(-2px);
+      }
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 40px;
+      }
+      .loading .spinner-border {
+        width: 3rem;
+        height: 3rem;
+        color: #1976d2;
+      }
+      .loading p {
+        color: #1976d2;
+        font-size: 1.1rem;
+        margin-top: 15px;
+      }
+      .progress-container {
+        width: 100%;
+        max-width: 500px;
+        margin: 20px auto;
+      }
+      .progress {
+        height: 10px;
+        border-radius: 5px;
+        background-color: #e3f2fd;
+      }
+      .progress-bar {
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        transition: width 0.5s ease;
+      }
+      .remaining-time {
+        color: #1976d2;
+        font-size: 0.9rem;
+        margin-top: 10px;
+      }
+      .form-control {
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+      .form-control:focus {
+        border-color: #1976d2;
+        box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.15);
+      }
+      .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 8px;
+      }
+      .toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #4caf50;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        z-index: 1000;
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <nav class="navbar navbar-expand-lg navbar-dark">
+      <div class="container">
+        <a class="navbar-brand" href="/">Daniel</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="/"><i class="fas fa-home"></i> Home</a>
+            </li>
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle active"
+                href="#"
+                role="button"
+                data-bs-toggle="dropdown"
+              >
+                <i class="fas fa-tools"></i> Tools
+              </a>
+              <ul class="dropdown-menu">
+                <li>
+                  <a class="dropdown-item" href="/number-analysis">
+                    <i class="fas fa-calculator"></i> Phân Tích Dãy Số</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/data-analysis">
+                    <i class="fas fa-table"></i> Phân Tích Dữ Liệu</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item active" href="/pdf-analysis">
+                    <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
+                  >
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/archive">
+                    <i class="fas fa-archive"></i> PDF Archive</a
+                  >
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <div class="main-container">
+      <div class="card">
+        <div class="card-header">
+          <h2>Phân Tích PDF</h2>
+        </div>
+        <div class="card-body">
+          <form id="uploadForm" enctype="multipart/form-data">
+            <div class="mb-4">
+              <label for="pdfFile" class="form-label">Chọn file PDF:</label>
+              <input
+                type="file"
+                class="form-control"
+                id="pdfFile"
+                accept=".pdf"
+                required
+              />
+            </div>
+            <div class="actions-container">
+              <button type="submit" class="btn btn-upload">
+                <i class="fas fa-upload"></i> Upload and Analyze
+              </button>
+              <button
+                id="downloadBtn"
+                class="btn btn-download"
+                style="display: none"
+                onclick="downloadWithPath()"
+              >
+                <i class="fas fa-download"></i> Export
+              </button>
+              <button
+                id="archiveBtn"
+                class="btn btn-primary"
+                style="display: none"
+                onclick="archiveCurrentFile()"
+              >
+                <i class="fas fa-archive"></i> Archive
+              </button>
+            </div>
+          </form>
+
+          <div id="loading" class="loading">
+            <div class="spinner-border" role="status">
+              <span class="visually-hidden">Đang xử lý...</span>
+            </div>
+            <p>Đang xử lý file PDF...</p>
+            <div class="progress-container">
+              <div class="progress">
+                <div
+                  class="progress-bar"
+                  role="progressbar"
+                  style="width: 0%"
+                ></div>
+              </div>
+              <div class="remaining-time">
+                Thời gian còn lại: <span id="timeRemaining">Đang tính...</span>
+              </div>
+            </div>
+          </div>
+
+          <div id="result" style="display: none">
+            <div class="order-info">
+              <p class="order-count">
+                Order Number: <span id="uniqueOrderCount">0</span>
+              </p>
+            </div>
+
+            <div class="order-columns">
+              <div class="order-column">
+                <h4 class="column-title">
+                  Trước khi sắp xếp
+                  <span class="count" id="originalCount">0</span>
+                </h4>
+                <div id="originalOrders"></div>
+              </div>
+              <div class="order-column">
+                <h4 class="column-title">
+                  Sau khi sắp xếp
+                  <span class="count" id="sortedCount">0</span>
+                </h4>
+                <div id="sortedOrders"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="successToast" class="toast">
+      <i class="fas fa-check-circle"></i> File downloaded successfully!
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      let currentFileName = "";
+      let startTime;
+      let totalPages = 0;
+      let processedPages = 0;
+      let processedFile = null; // Store processed file info
+
+      function updateProgress(current, total) {
+        if (current <= 0 || total <= 0) return;
+
+        const progress = (current / total) * 100;
+        document.querySelector(".progress-bar").style.width = `${progress}%`;
+
+        // Tính thời gian còn lại
+        const elapsedTime = (Date.now() - startTime) / 1000; // Thời gian đã trôi qua (giây)
+        if (current > 0) {
+          const timePerPage = elapsedTime / current; // Thời gian trung bình cho mỗi trang
+          const remainingPages = total - current;
+          const remainingTime = remainingPages * timePerPage;
+
+          // Hiển thị thời gian còn lại
+          const timeElement = document.getElementById("timeRemaining");
+          if (remainingTime > 60) {
+            timeElement.textContent = `${Math.ceil(remainingTime / 60)} phút`;
+          } else {
+            timeElement.textContent = `${Math.ceil(remainingTime)} giây`;
+          }
+        }
+      }
+
+      document.getElementById("uploadForm").onsubmit = async function (e) {
+        e.preventDefault();
+
+        const formData = new FormData();
+        const fileInput = document.getElementById("pdfFile");
+        formData.append("file", fileInput.files[0]);
+
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("result").style.display = "none";
+        document.getElementById("downloadBtn").style.display = "none";
+        document.getElementById("archiveBtn").style.display = "none";
+
+        // Reset progress
+        startTime = Date.now();
+        processedPages = 0;
+        document.querySelector(".progress-bar").style.width = "0%";
+        document.getElementById("timeRemaining").textContent = "Đang tính...";
+
+        // Bắt đầu theo dõi tiến trình
+        startProgressMonitoring();
+
+        try {
+          const response = await fetch("/upload-pdf", {
+            method: "POST",
+            body: formData,
+          });
+
+          const data = await response.json();
+
+          if (data.success) {
+            // Store processed file info
+            processedFile = {
+              filename: data.output_file,
+              originalName: fileInput.files[0].name,
+            };
+            currentFileName = data.output_file;
+
+            // Tìm các Order Number unique
+            const uniqueOriginalOrders = [
+              ...new Set(data.original_order_numbers),
+            ];
+            const uniqueSortedOrders = [...new Set(data.sorted_order_numbers)];
+
+            // Hiển thị danh sách Order Number
+            const originalOrdersDiv = document.getElementById("originalOrders");
+            originalOrdersDiv.innerHTML = uniqueOriginalOrders
+              .map((num) => `<span class="order-number">${num}</span>`)
+              .join("");
+
+            const sortedOrdersDiv = document.getElementById("sortedOrders");
+            sortedOrdersDiv.innerHTML = uniqueSortedOrders
+              .map((num) => `<span class="order-number">${num}</span>`)
+              .join("");
+
+            // Cập nhật số lượng
+            document.getElementById("uniqueOrderCount").textContent =
+              uniqueOriginalOrders.length;
+            document.getElementById("originalCount").textContent =
+              uniqueOriginalOrders.length;
+            document.getElementById("sortedCount").textContent =
+              uniqueSortedOrders.length;
+
+            // Hiển thị các nút
+            document.getElementById("downloadBtn").style.display =
+              "inline-flex";
+            document.getElementById("archiveBtn").style.display = "inline-flex";
+            document.getElementById("result").style.display = "block";
+          } else {
+            alert(data.error || "Có lỗi xảy ra");
+          }
+        } catch (error) {
+          alert("Có lỗi xảy ra khi xử lý file");
+        } finally {
+          document.getElementById("loading").style.display = "none";
+        }
+      };
+
+      function downloadWithPath() {
+        if (!processedFile) {
+          alert("Không tìm thấy file đã xử lý");
+          return;
+        }
+
+        const sortedFileName = "sort_" + processedFile.originalName;
+        const downloadUrl = "/download-pdf/" + processedFile.filename;
+
+        // Tạo thẻ a để download trực tiếp
+        const link = document.createElement("a");
+        link.href = downloadUrl;
+        link.download = sortedFileName;
+        link.target = "_blank"; // Mở trong tab mới để tránh trình duyệt block download
+
+        // Thêm event listener để xử lý sau khi download hoàn tất
+        link.addEventListener("click", function (e) {
+          // Hiển thị thông báo thành công
+          const toast = document.getElementById("successToast");
+          toast.innerHTML =
+            '<i class="fas fa-check-circle"></i> File downloaded successfully!';
+          toast.style.display = "block";
+          setTimeout(() => {
+            toast.style.display = "none";
+          }, 3000);
+        });
+
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      }
+
+      async function archiveCurrentFile() {
+        if (!processedFile) {
+          alert("Không tìm thấy file đã xử lý");
+          return;
+        }
+
+        try {
+          const response = await fetch(
+            `/archive-pdf/${processedFile.filename}`
+          );
+          const data = await response.json();
+
+          if (response.ok && data.success) {
+            // Hiển thị thông báo thành công
+            const toast = document.getElementById("successToast");
+            toast.innerHTML =
+              '<i class="fas fa-check-circle"></i> ' +
+              (data.message || "File archived successfully!");
+            toast.style.display = "block";
+
+            // Đợi 1 giây trước khi chuyển hướng để người dùng thấy thông báo
+            setTimeout(() => {
+              window.location.href = "/archive";
+            }, 1000);
+          } else {
+            alert(data.error || "Có lỗi xảy ra khi lưu trữ file");
+          }
+        } catch (error) {
+          console.error("Error during archiving:", error);
+          alert("Có lỗi xảy ra khi lưu trữ file");
+        }
+      }
+
+      // Thêm event source để nhận cập nhật tiến trình
+      function startProgressMonitoring() {
+        const eventSource = new EventSource("/progress");
+        let isCompleted = false;
+
+        eventSource.onmessage = function (event) {
+          const data = JSON.parse(event.data);
+          if (data.total_pages) {
+            totalPages = data.total_pages;
+          }
+          if (data.processed_pages) {
+            processedPages = data.processed_pages;
+            updateProgress(processedPages, totalPages);
+          }
+          if (data.complete && !isCompleted) {
+            isCompleted = true;
+            eventSource.close();
+          }
+        };
+
+        eventSource.onerror = function () {
+          eventSource.close();
+        };
+      }
+    </script>
+  </body>
+</html>

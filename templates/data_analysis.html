@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Phân Tích Dữ Liệu - Made by Daniel</title>
+    <title>Phân Tích Dữ Liệu - Daniel</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -14,141 +14,218 @@
     />
     <style>
       body {
-        background-color: #f8f9fa;
-        padding-top: 56px;
+        background-color: #f0f2f5;
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
       }
-      .container {
+      .navbar {
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px 0;
+      }
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+      .main-container {
         max-width: 1200px;
-        margin-top: 30px;
+        margin: 30px auto;
+        padding: 0 20px;
       }
       .card {
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        background: white;
+        margin-bottom: 30px;
+        overflow: hidden;
       }
       .card-header {
-        background-color: #0d6efd;
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
         color: white;
-        border-radius: 15px 15px 0 0 !important;
+        padding: 25px;
         text-align: center;
-        padding: 20px;
+        border-bottom: none;
+      }
+      .card-header h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
+      }
+      .card-body {
+        padding: 40px;
+      }
+      .table-actions {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        display: flex;
+        gap: 15px;
+        flex-wrap: wrap;
+        align-items: center;
+      }
+      .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+      .btn i {
+        font-size: 1.1rem;
+      }
+      .btn-add-row {
+        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+        color: white;
+        border: none;
+      }
+      .btn-add-row:hover {
+        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+        transform: translateY(-2px);
+      }
+      .btn-paste {
+        background: linear-gradient(135deg, #f57c00 0%, #fb8c00 100%);
+        color: white;
+        border: none;
+      }
+      .btn-paste:hover {
+        background: linear-gradient(135deg, #fb8c00 0%, #ffa726 100%);
+        transform: translateY(-2px);
+      }
+      .btn-danger {
+        background: linear-gradient(135deg, #c62828 0%, #d32f2f 100%);
+        color: white;
+        border: none;
+      }
+      .btn-danger:hover {
+        background: linear-gradient(135deg, #d32f2f 0%, #e53935 100%);
+        transform: translateY(-2px);
+      }
+      .btn-analyze {
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        color: white;
+        border: none;
+      }
+      .btn-analyze:hover {
+        background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+        transform: translateY(-2px);
+      }
+      .divider {
+        width: 2px;
+        height: 24px;
+        background: #e0e0e0;
+        margin: 0 10px;
+      }
+      .table-container {
+        background: white;
+        border-radius: 15px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        margin: 20px 0;
+        overflow: hidden;
       }
       .excel-table {
         width: 100%;
         border-collapse: collapse;
-        font-family: Arial, sans-serif;
+        font-family: "Segoe UI", Arial, sans-serif;
       }
       .excel-table th {
-        background-color: #f3f3f3;
-        border: 1px solid #ddd;
-        padding: 12px;
+        background: #f8f9fa;
+        color: #1a237e;
+        font-weight: 600;
+        padding: 15px;
         text-align: center;
-        font-weight: bold;
+        border: 1px solid #e0e0e0;
+        font-size: 1.1rem;
       }
       .excel-table td {
-        border: 1px solid #ddd;
+        border: 1px solid #e0e0e0;
         padding: 0;
         height: 40px;
+        text-align: center;
       }
       .excel-table input {
         width: 100%;
         height: 100%;
         border: none;
-        padding: 8px;
-        box-sizing: border-box;
-        font-size: 14px;
+        padding: 8px 12px;
+        font-size: 1rem;
+        transition: all 0.2s ease;
       }
       .excel-table input:focus {
-        outline: 2px solid #0d6efd;
-        background-color: #f8f9fa;
-      }
-      .table-container {
-        max-height: 600px;
-        overflow-y: auto;
-        margin: 20px 0;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-      }
-      .table-actions {
-        display: flex;
-        gap: 10px;
-        padding: 15px;
-        background-color: #f8f9fa;
-        border-radius: 8px;
-        align-items: center;
-        flex-wrap: wrap;
-      }
-      .btn {
-        padding: 8px 16px;
-        font-weight: 500;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-      }
-      .btn i {
-        font-size: 16px;
-      }
-      .btn-add-row {
-        background-color: #28a745;
-        color: white;
-      }
-      .btn-add-row:hover {
-        background-color: #218838;
-        color: white;
-      }
-      .btn-paste {
-        background-color: #ffc107;
-        color: #000;
-      }
-      .btn-paste:hover {
-        background-color: #e0a800;
-        color: #000;
-      }
-      .btn-danger {
-        background-color: #dc3545;
-      }
-      .btn-danger:hover {
-        background-color: #c82333;
-      }
-      .btn-analyze {
-        background-color: #0d6efd;
-        color: white;
-      }
-      .btn-analyze:hover {
-        background-color: #0b5ed7;
-        color: white;
-      }
-      #result {
-        margin-top: 20px;
-        display: none;
+        outline: none;
+        background: #e3f2fd;
+        box-shadow: inset 0 0 0 2px #1976d2;
       }
       .result-section {
-        margin: 15px 0;
+        background: #ffffff;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e0e0e0;
+      }
+      .result-section h4 {
+        color: #1a237e;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e3f2fd;
+      }
+      .alert {
+        border: none;
+        border-radius: 15px;
         padding: 20px;
-        border-radius: 10px;
-        background-color: #fff;
-        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        margin-top: 20px;
+        font-size: 1.1rem;
+      }
+      .alert-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .alert-danger {
+        background: #fbe9e7;
+        color: #d32f2f;
+      }
+      .alert-warning {
+        background: #fff3e0;
+        color: #f57c00;
       }
       .error-row {
-        background-color: #ffe6e6;
+        background: #fbe9e7;
       }
       .success-row {
-        background-color: #e6ffe6;
+        background: #e8f5e9;
       }
-      .divider {
-        width: 1px;
-        height: 24px;
-        background-color: #dee2e6;
-        margin: 0 10px;
+      @media (max-width: 768px) {
+        .card-body {
+          padding: 20px;
+        }
+        .table-actions {
+          padding: 15px;
+        }
+        .btn {
+          width: 100%;
+          justify-content: center;
+        }
+        .divider {
+          width: 100%;
+          height: 1px;
+          margin: 10px 0;
+        }
       }
     </style>
   </head>
   <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container">
-        <a class="navbar-brand" href="/">
-          <span class="fw-bold">Made by Daniel</span>
-        </a>
+        <a class="navbar-brand" href="/">Daniel</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -160,9 +237,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/"
-                ><i class="fas fa-home"></i> Trang Chủ</a
-              >
+              <a class="nav-link" href="/"><i class="fas fa-home"></i> Home</a>
             </li>
             <li class="nav-item dropdown">
               <a
@@ -171,7 +246,7 @@
                 role="button"
                 data-bs-toggle="dropdown"
               >
-                <i class="fas fa-tools"></i> Công Cụ
+                <i class="fas fa-tools"></i> Tools
               </a>
               <ul class="dropdown-menu">
                 <li>
@@ -184,6 +259,11 @@
                     <i class="fas fa-table"></i> Phân Tích Dữ Liệu</a
                   >
                 </li>
+                <li>
+                  <a class="dropdown-item" href="/pdf-analysis">
+                    <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
+                  >
+                </li>
               </ul>
             </li>
           </ul>
@@ -191,10 +271,10 @@
       </div>
     </nav>
 
-    <div class="container">
+    <div class="main-container">
       <div class="card">
         <div class="card-header">
-          <h2 class="mb-0">Phân Tích Dữ Liệu</h2>
+          <h2>Phân Tích Dữ Liệu</h2>
         </div>
         <div class="card-body">
           <div class="table-actions">
@@ -232,10 +312,9 @@
             </table>
           </div>
 
-          <!-- Kết quả phân tích -->
-          <div id="result" class="mt-4">
+          <div id="result" class="mt-4" style="display: none">
             <div class="result-section">
-              <h4>Kết quả phân tích:</h4>
+              <h4>Kết quả phân tích</h4>
               <div id="analysisResult"></div>
             </div>
           </div>

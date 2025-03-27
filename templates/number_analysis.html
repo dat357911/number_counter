@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Phân Tích Dãy Số - Made by Daniel</title>
+    <title>Phân Tích Dãy Số - Daniel</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -14,62 +14,174 @@
     />
     <style>
       body {
-        background-color: #f8f9fa;
-        padding-top: 56px;
+        background-color: #f0f2f5;
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
       }
-      .container {
-        max-width: 800px;
-        margin-top: 30px;
+      .navbar {
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px 0;
+      }
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 600;
+      }
+      .main-container {
+        max-width: 1000px;
+        margin: 30px auto;
+        padding: 0 20px;
       }
       .card {
-        border-radius: 15px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 20px;
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        background: white;
+        margin-bottom: 30px;
+        overflow: hidden;
       }
       .card-header {
-        background-color: #0d6efd;
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
         color: white;
-        border-radius: 15px 15px 0 0 !important;
+        padding: 25px;
         text-align: center;
-        padding: 20px;
+        border-bottom: none;
       }
-      .btn-calculate {
-        background-color: #0d6efd;
-        border: none;
-        padding: 10px 30px;
+      .card-header h2 {
+        font-size: 2rem;
+        font-weight: 600;
+        margin: 0;
       }
-      .btn-calculate:hover {
-        background-color: #0b5ed7;
-      }
-      #result {
-        margin-top: 20px;
-        display: none;
-      }
-      .alert {
-        display: none;
-        margin-top: 20px;
-      }
-      .result-section {
-        margin-bottom: 15px;
-        padding: 15px;
-        border-radius: 10px;
-        background-color: #f8f9fa;
+      .card-body {
+        padding: 40px;
       }
       .mode-selector {
-        margin-bottom: 20px;
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+        margin-bottom: 30px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+      }
+      .mode-selector h5 {
+        color: #1a237e;
+        font-weight: 600;
+        margin-bottom: 15px;
+      }
+      .form-check {
+        margin-bottom: 10px;
+      }
+      .form-check-input {
+        width: 1.2em;
+        height: 1.2em;
+        margin-top: 0.2em;
+      }
+      .form-check-input:checked {
+        background-color: #1976d2;
+        border-color: #1976d2;
+      }
+      .form-check-label {
+        font-size: 1.1rem;
+        color: #2c3e50;
+        padding-left: 8px;
       }
       .sequence-input {
+        margin-bottom: 30px;
+      }
+      .form-label {
+        font-weight: 500;
+        color: #2c3e50;
+        margin-bottom: 10px;
+        font-size: 1.1rem;
+      }
+      .form-control {
+        padding: 12px;
+        border-radius: 10px;
+        border: 2px solid #e0e0e0;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+      }
+      .form-control:focus {
+        border-color: #1976d2;
+        box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.15);
+      }
+      .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+      .btn-primary {
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        border: none;
+      }
+      .btn-primary:hover {
+        background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+        transform: translateY(-2px);
+      }
+      .result-section {
+        background: #ffffff;
+        border-radius: 15px;
+        padding: 25px;
+        margin-top: 30px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+        border: 1px solid #e0e0e0;
+      }
+      .result-section h4 {
+        color: #1a237e;
+        font-weight: 600;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e3f2fd;
+      }
+      .result-section p {
+        color: #2c3e50;
+        font-size: 1.1rem;
         margin-bottom: 15px;
-        display: none;
+      }
+      .result-section strong {
+        color: #1976d2;
+      }
+      .alert {
+        border: none;
+        border-radius: 15px;
+        padding: 20px;
+        margin-top: 20px;
+        font-size: 1.1rem;
+      }
+      .alert-success {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      .alert-danger {
+        background: #fbe9e7;
+        color: #d32f2f;
+      }
+      .alert-warning {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+      @media (max-width: 768px) {
+        .card-body {
+          padding: 20px;
+        }
+        .mode-selector {
+          padding: 20px;
+        }
+        .form-check-label {
+          font-size: 1rem;
+        }
       }
     </style>
   </head>
   <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container">
-        <a class="navbar-brand" href="/">
-          <span class="fw-bold">Made by Daniel</span>
-        </a>
+        <a class="navbar-brand" href="/">Daniel</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -81,9 +193,7 @@
         <div class="collapse navbar-collapse" id="navbarNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
-              <a class="nav-link" href="/"
-                ><i class="fas fa-home"></i> Trang Chủ</a
-              >
+              <a class="nav-link" href="/"><i class="fas fa-home"></i> Home</a>
             </li>
             <li class="nav-item dropdown">
               <a
@@ -92,7 +202,7 @@
                 role="button"
                 data-bs-toggle="dropdown"
               >
-                <i class="fas fa-tools"></i> Công Cụ
+                <i class="fas fa-tools"></i> Tools
               </a>
               <ul class="dropdown-menu">
                 <li>
@@ -105,6 +215,11 @@
                     <i class="fas fa-table"></i> Phân Tích Dữ Liệu</a
                   >
                 </li>
+                <li>
+                  <a class="dropdown-item" href="/pdf-analysis">
+                    <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
+                  >
+                </li>
               </ul>
             </li>
           </ul>
@@ -112,14 +227,14 @@
       </div>
     </nav>
 
-    <div class="container">
+    <div class="main-container">
       <div class="card">
         <div class="card-header">
-          <h2 class="mb-0">Phân Tích Dãy Số</h2>
+          <h2>Phân Tích Dãy Số</h2>
         </div>
         <div class="card-body">
-          <div class="mode-selector mb-4">
-            <h5>Chọn chế độ:</h5>
+          <div class="mode-selector">
+            <h5>Chọn chế độ phân tích:</h5>
             <div class="form-check">
               <input
                 class="form-check-input"
@@ -131,7 +246,7 @@
                 onchange="switchMode()"
               />
               <label class="form-check-label" for="singleMode">
-                Tính tổng số lượng (1 dãy số)
+                <i class="fas fa-list-ol"></i> Tính tổng số lượng (1 dãy số)
               </label>
             </div>
             <div class="form-check">
@@ -144,21 +259,21 @@
                 onchange="switchMode()"
               />
               <label class="form-check-label" for="dualMode">
-                Kiểm tra tính liên tục (2 dãy số)
+                <i class="fas fa-link"></i> Kiểm tra tính liên tục (2 dãy số)
               </label>
             </div>
           </div>
 
           <div id="singleSequence" class="sequence-input">
             <div class="mb-3">
-              <label for="numbers" class="form-label"
-                >Nhập dãy số (ví dụ: 1-10, 12, 15, 19-23):</label
-              >
+              <label for="numbers" class="form-label">
+                <i class="fas fa-keyboard"></i> Nhập dãy số:
+              </label>
               <input
                 type="text"
                 class="form-control"
                 id="numbers"
-                placeholder="Nhập dãy số..."
+                placeholder="Ví dụ: 1-10, 12, 15, 19-23"
                 onkeypress="handleKeyPress(event)"
                 onkeydown="handleKeyDown(event)"
               />
@@ -167,27 +282,27 @@
 
           <div id="dualSequence" class="sequence-input">
             <div class="mb-3">
-              <label for="sequence1" class="form-label"
-                >Dãy số thứ nhất (ví dụ: 6,11-18,20):</label
-              >
+              <label for="sequence1" class="form-label">
+                <i class="fas fa-list-ol"></i> Dãy số thứ nhất:
+              </label>
               <input
                 type="text"
                 class="form-control"
                 id="sequence1"
-                placeholder="Nhập dãy số thứ nhất..."
+                placeholder="Ví dụ: 6,11-18,20"
                 onkeypress="handleKeyPress(event)"
                 onkeydown="handleKeyDown(event)"
               />
             </div>
             <div class="mb-3">
-              <label for="sequence2" class="form-label"
-                >Dãy số thứ hai (ví dụ: 1-5,7-10,19,21):</label
-              >
+              <label for="sequence2" class="form-label">
+                <i class="fas fa-list-ol"></i> Dãy số thứ hai:
+              </label>
               <input
                 type="text"
                 class="form-control"
                 id="sequence2"
-                placeholder="Nhập dãy số thứ hai..."
+                placeholder="Ví dụ: 1-5,7-10,19,21"
                 onkeypress="handleKeyPress(event)"
                 onkeydown="handleKeyDown(event)"
               />
@@ -195,26 +310,26 @@
           </div>
 
           <div class="text-center">
-            <button class="btn btn-primary btn-calculate" onclick="calculate()">
-              Phân tích
+            <button class="btn btn-primary" onclick="calculate()">
+              <i class="fas fa-calculator"></i> Phân tích
             </button>
           </div>
 
           <div id="result" class="alert">
             <div id="singleResult" class="result-section">
-              <h4>Thống kê số lượng:</h4>
+              <h4>Thống kê số lượng</h4>
               <p>
-                Tổng số lượng số: <strong><span id="count"></span></strong>
+                Tổng số lượng số: <strong><span id="count">0</span></strong>
               </p>
               <p>Danh sách số: <span id="numberList"></span></p>
             </div>
 
             <div id="continuityResult" class="result-section">
-              <h4>Phân tích tính liên tục:</h4>
+              <h4>Phân tích tính liên tục</h4>
               <p id="continuityMessage" class="mb-0"></p>
               <div
                 id="duplicateWarning"
-                class="alert alert-warning mt-2"
+                class="alert alert-warning mt-3"
                 style="display: none"
               >
                 <i class="fas fa-exclamation-triangle"></i>
@@ -272,7 +387,7 @@
         });
 
         // Thêm tooltip cho các nút
-        const calculateBtn = document.querySelector(".btn-calculate");
+        const calculateBtn = document.querySelector(".btn-primary");
         if (calculateBtn) {
           calculateBtn.title = "Nhấn Enter để thực thi";
         }

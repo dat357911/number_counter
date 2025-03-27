@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Công Cụ Tự Động - Made by Daniel</title>
+    <title>Automation Tool - Daniel</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -14,57 +14,140 @@
     />
     <style>
       body {
-        background-color: #f8f9fa;
+        background-color: #f0f2f5;
+        font-family: "Segoe UI", Arial, sans-serif;
+        min-height: 100vh;
       }
-      .navbar-brand img {
-        height: 40px;
-        margin-right: 10px;
+      .navbar {
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        padding: 15px 0;
+      }
+      .navbar-brand {
+        font-size: 1.5rem;
+        font-weight: 600;
       }
       .hero-section {
-        background: linear-gradient(135deg, #0d6efd 0%, #0098db 100%);
+        background: linear-gradient(135deg, #0d47a1 0%, #1565c0 100%);
         color: white;
-        padding: 100px 0;
-        margin-bottom: 50px;
+        padding: 120px 0 100px;
+        margin-bottom: 60px;
+        position: relative;
+        overflow: hidden;
+      }
+      .hero-section::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="rgba(255,255,255,0.1)" x="0" y="0" width="100" height="100"/></svg>')
+          repeat;
+        opacity: 0.1;
       }
       .hero-title {
         font-size: 3.5rem;
-        font-weight: bold;
+        font-weight: 700;
         margin-bottom: 20px;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
       }
       .hero-subtitle {
         font-size: 1.5rem;
         opacity: 0.9;
+        max-width: 800px;
+        margin: 0 auto;
+        line-height: 1.6;
+        white-space: nowrap;
       }
       .feature-card {
+        background: white;
         border: none;
-        border-radius: 15px;
-        transition: transform 0.3s ease;
+        border-radius: 20px;
+        transition: all 0.3s ease;
         margin-bottom: 30px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+        overflow: hidden;
+        height: 100%;
       }
       .feature-card:hover {
         transform: translateY(-5px);
+        box-shadow: 0 12px 20px rgba(0, 0, 0, 0.15);
+      }
+      .feature-card .card-body {
+        padding: 2rem;
       }
       .feature-icon {
         font-size: 2.5rem;
-        color: #0d6efd;
-        margin-bottom: 20px;
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        margin-bottom: 1.5rem;
+        display: inline-block;
+      }
+      .feature-card .card-title {
+        color: #1a237e;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+      }
+      .feature-card .card-text {
+        color: #546e7a;
+        font-size: 1.1rem;
+        line-height: 1.6;
+        margin-bottom: 1.5rem;
+      }
+      .feature-card .btn {
+        padding: 12px 25px;
+        font-size: 1rem;
+        font-weight: 500;
+        border-radius: 10px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        color: white;
+        border: none;
+      }
+      .feature-card .btn:hover {
+        background: linear-gradient(135deg, #1976d2 0%, #2196f3 100%);
+        transform: translateY(-2px);
       }
       .footer {
-        background-color: #343a40;
+        background: linear-gradient(135deg, #1a237e 0%, #0d47a1 100%);
         color: white;
-        padding: 30px 0;
-        margin-top: 50px;
+        padding: 40px 0;
+        margin-top: 60px;
+      }
+      .footer p {
+        margin: 0;
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      @media (max-width: 768px) {
+        .hero-title {
+          font-size: 2.5rem;
+        }
+        .hero-subtitle {
+          font-size: 1.2rem;
+        }
+        .feature-card {
+          margin-bottom: 20px;
+        }
       }
     </style>
   </head>
   <body>
     <!-- Navbar -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+    <nav class="navbar navbar-expand-lg navbar-dark">
       <div class="container">
-        <a class="navbar-brand" href="/">
-          <span class="fw-bold">Made by Daniel</span>
-        </a>
+        <a class="navbar-brand" href="/">Daniel</a>
         <button
           class="navbar-toggler"
           type="button"
@@ -77,7 +160,7 @@
           <ul class="navbar-nav ms-auto">
             <li class="nav-item">
               <a class="nav-link active" href="/"
-                ><i class="fas fa-home"></i> Trang Chủ</a
+                ><i class="fas fa-home"></i> Home</a
               >
             </li>
             <li class="nav-item dropdown">
@@ -87,7 +170,7 @@
                 role="button"
                 data-bs-toggle="dropdown"
               >
-                <i class="fas fa-tools"></i> Công Cụ
+                <i class="fas fa-tools"></i> Tools
               </a>
               <ul class="dropdown-menu">
                 <li>
@@ -100,6 +183,11 @@
                     <i class="fas fa-table"></i> Phân Tích Dữ Liệu</a
                   >
                 </li>
+                <li>
+                  <a class="dropdown-item" href="/pdf-analysis">
+                    <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
+                  >
+                </li>
               </ul>
             </li>
           </ul>
@@ -110,8 +198,10 @@
     <!-- Hero Section -->
     <section class="hero-section">
       <div class="container text-center">
-        <h1 class="hero-title">Công Cụ Tự Động</h1>
-        <p class="hero-subtitle">Made by Daniel</p>
+        <h1 class="hero-title">Automation Tool</h1>
+        <p class="hero-subtitle">
+          Giải pháp tự động hóa thông minh cho công việc của bạn
+        </p>
       </div>
     </section>
 
@@ -119,30 +209,46 @@
     <section class="container">
       <div class="row justify-content-center">
         <div class="col-md-4">
-          <div class="card feature-card text-center p-4">
-            <div class="card-body">
+          <div class="feature-card">
+            <div class="card-body text-center">
               <i class="fas fa-calculator feature-icon"></i>
               <h5 class="card-title">Phân Tích Dãy Số</h5>
               <p class="card-text">
-                Công cụ phân tích dãy số thông minh, hỗ trợ tính tổng và kiểm
-                tra tính liên tục.
+                Công cụ tính tổng và kiểm tra tính liên tục của dãy số nhanh
+                chóng, chính xác.
               </p>
-              <a href="/number-analysis" class="btn btn-primary"
-                >Sử Dụng Ngay</a
-              >
+              <a href="/number-analysis" class="btn">
+                <i class="fas fa-arrow-right"></i> Sử Dụng Ngay
+              </a>
             </div>
           </div>
         </div>
         <div class="col-md-4">
-          <div class="card feature-card text-center p-4">
-            <div class="card-body">
+          <div class="feature-card">
+            <div class="card-body text-center">
               <i class="fas fa-table feature-icon"></i>
               <h5 class="card-title">Phân Tích Dữ Liệu</h5>
               <p class="card-text">
-                Công cụ phân tích dữ liệu Excel, so sánh và kiểm tra tính liên
-                tục của dãy số.
+                Công cụ phân tích Excel, so sánh và kiểm tra tính liên tục dãy
+                số hiệu quả.
               </p>
-              <a href="/data-analysis" class="btn btn-primary">Sử Dụng Ngay</a>
+              <a href="/data-analysis" class="btn">
+                <i class="fas fa-arrow-right"></i> Sử Dụng Ngay
+              </a>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="feature-card">
+            <div class="card-body text-center">
+              <i class="fas fa-file-pdf feature-icon"></i>
+              <h5 class="card-title">Phân Tích PDF</h5>
+              <p class="card-text">
+                Công cụ sắp xếp PDF theo Order Number với giao diện trực quan.
+              </p>
+              <a href="/pdf-analysis" class="btn">
+                <i class="fas fa-arrow-right"></i> Sử Dụng Ngay
+              </a>
             </div>
           </div>
         </div>
@@ -152,7 +258,7 @@
     <!-- Footer -->
     <footer class="footer">
       <div class="container text-center">
-        <p class="mb-0">&copy; 2024 Made by Daniel. All rights reserved.</p>
+        <p>&copy; 2024 Daniel. All rights reserved.</p>
       </div>
     </footer>
 
