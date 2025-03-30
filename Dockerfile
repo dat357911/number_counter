@@ -11,6 +11,10 @@ RUN apt-get update && \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
+# Kiểm tra cài đặt Poppler và Tesseract
+RUN pdftoppm -v && \
+    tesseract --version
+
 # Tạo và set working directory
 WORKDIR /app
 
@@ -23,7 +27,7 @@ COPY . .
 
 # Tạo các thư mục cần thiết và set quyền
 RUN mkdir -p temp archive temp/debug && \
-    chmod -R 755 temp archive && \
+    chmod -R 777 temp archive temp/debug && \
     chmod -R 777 /app
 
 # Set environment variables
@@ -33,9 +37,12 @@ ENV LC_ALL=C.UTF-8
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
 ENV PATH="/usr/bin:${PATH}"
 
-# Kiểm tra cài đặt
-RUN tesseract --version && \
+# Kiểm tra lại quyền và thư mục
+RUN ls -la /app && \
+    ls -la /app/temp && \
+    ls -la /app/archive && \
+    tesseract --version && \
     pdftoppm -v
 
 # Start command
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "wsgi:application"] 
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "300", "wsgi:application"] 

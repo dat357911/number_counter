@@ -1,6 +1,7 @@
 import os
 import sys
 import logging
+import subprocess
 
 # Cấu hình logging
 logging.basicConfig(
@@ -21,12 +22,28 @@ if project_dir not in sys.path:
 os.environ['LANG'] = 'C.UTF-8'
 os.environ['LC_ALL'] = 'C.UTF-8'
 
+def check_dependencies():
+    """Kiểm tra các dependencies"""
+    try:
+        # Kiểm tra Tesseract
+        tesseract_version = subprocess.check_output(['tesseract', '--version'], stderr=subprocess.STDOUT)
+        logging.info(f"Tesseract version: {tesseract_version.decode()}")
+        
+        # Kiểm tra Poppler
+        poppler_version = subprocess.check_output(['pdftoppm', '-v'], stderr=subprocess.STDOUT)
+        logging.info(f"Poppler version: {poppler_version.decode()}")
+        
+        return True
+    except Exception as e:
+        logging.error(f"Error checking dependencies: {str(e)}")
+        return False
+
 def ensure_dir(directory):
     """Đảm bảo thư mục tồn tại và có quyền truy cập"""
     if not os.path.exists(directory):
         try:
             os.makedirs(directory, exist_ok=True)
-            os.chmod(directory, 0o755)
+            os.chmod(directory, 0o777)
             logging.info(f"Created directory with permissions: {directory}")
         except Exception as e:
             logging.error(f"Error creating directory {directory}: {str(e)}")
@@ -42,6 +59,16 @@ debug_dir = os.path.join(temp_dir, 'debug')
 for directory in [temp_dir, archive_dir, debug_dir]:
     ensure_dir(directory)
     logging.info(f"Directory exists and accessible: {directory}")
+    # Log directory permissions
+    try:
+        perms = oct(os.stat(directory).st_mode)[-3:]
+        logging.info(f"Permissions for {directory}: {perms}")
+    except Exception as e:
+        logging.error(f"Error checking permissions for {directory}: {str(e)}")
+
+# Kiểm tra dependencies
+if not check_dependencies():
+    logging.error("Required dependencies are not installed properly!")
 
 # Add Poppler and Tesseract to PATH based on environment
 if os.name == 'nt':  # Windows
