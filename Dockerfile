@@ -11,9 +11,13 @@ RUN apt-get update && \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Verify installations
-RUN which pdftoppm && pdftoppm -v
-RUN which tesseract && tesseract --version
+# Verify installations and show paths
+RUN which tesseract && \
+    tesseract --version && \
+    which pdftoppm && \
+    pdftoppm -v && \
+    echo "Tesseract path: $(which tesseract)" && \
+    echo "Poppler path: $(which pdftoppm)"
 
 # Set working directory
 WORKDIR /opt/render/project/src
@@ -39,14 +43,13 @@ ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
 ENV PATH="/usr/local/bin:/usr/bin:/opt/render/project/src:${PATH}"
 
 # Verify final setup
-RUN ls -la && \
-    ls -la temp && \
-    ls -la archive && \
-    ls -la temp/debug && \
-    which tesseract && \
-    tesseract --version && \
-    which pdftoppm && \
-    pdftoppm -v
+RUN echo "Current PATH: $PATH" && \
+    echo "Tesseract location: $(which tesseract)" && \
+    echo "Tesseract version: $(tesseract --version)" && \
+    echo "Poppler location: $(which pdftoppm)" && \
+    echo "Poppler version: $(pdftoppm -v)" && \
+    ls -la /usr/bin/tesseract && \
+    ls -la /usr/bin/pdftoppm
 
 # Start command with increased timeout
 CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "300", "wsgi:application"] 
