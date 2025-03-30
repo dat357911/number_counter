@@ -188,7 +188,31 @@
                     <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
                   >
                 </li>
+                <li>
+                  <a class="dropdown-item" href="/archive">
+                    <i class="fas fa-archive"></i> PDF Archive</a
+                  >
+                </li>
+                {% if session.get('username') == 'daniel' %}
+                <li>
+                  <a class="dropdown-item" href="/history">
+                    <i class="fas fa-history"></i> History</a
+                  >
+                </li>
+                {% endif %}
               </ul>
+            </li>
+            {% if session.get('username') == 'daniel' %}
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">
+                <i class="fas fa-user-shield"></i> Admin
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">
+                <i class="fas fa-sign-out-alt"></i> Log out
+              </a>
             </li>
           </ul>
         </div>

@@ -8,10 +8,26 @@ import re
 from PIL import Image, ImageEnhance
 import io
 import shutil
-from datetime import datetime
+from datetime import datetime, timedelta
 import time
 import json
 import platform
+import logging
+import sys
+from functools import wraps
+import sqlite3
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.interval import IntervalTrigger
+import atexit
+
+# Cấu hình logging
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 
 # Cấu hình đường dẫn
 if platform.system() == 'Windows':
@@ -35,6 +51,164 @@ progress_data = {
     'processed_pages': 0,
     'complete': False
 }
+
+# Danh sách tài khoản hợp lệ
+VALID_ACCOUNTS = {
+    'sammy': '04',
+    'ryan': '04',
+    'daniel': '04'
+}
+
+# Giới hạn số lượng người dùng đăng nhập đồng thời
+MAX_CONCURRENT_USERS = 3
+
+# Lưu trữ thông tin người dùng đang đăng nhập
+active_users = {}
+
+# Cấu hình database
+DATABASE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'database.db')
+
+def init_db():
+    """Khởi tạo database nếu chưa tồn tại"""
+    try:
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        
+        # Tạo bảng files để lưu thông tin file
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS files (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                original_name TEXT NOT NULL,
+                processed_name TEXT NOT NULL,
+                file_path TEXT NOT NULL,
+                file_size INTEGER,
+                total_pages INTEGER,
+                processed_pages INTEGER,
+                status TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                processed_by TEXT,
+                order_numbers TEXT
+            )
+        ''')
+        
+        # Tạo bảng order_numbers để lưu chi tiết các order number
+        c.execute('''
+            CREATE TABLE IF NOT EXISTS order_numbers (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                file_id INTEGER,
+                order_number TEXT NOT NULL,
+                page_number INTEGER,
+                FOREIGN KEY (file_id) REFERENCES files (id)
+            )
+        ''')
+        
+        conn.commit()
+        logging.info("Database initialized successfully")
+    except Exception as e:
+        logging.error(f"Error initializing database: {str(e)}")
+    finally:
+        conn.close()
+
+def save_file_info(file_info):
+    """Lưu thông tin file vào database"""
+    try:
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        
+        # Lưu thông tin file
+        c.execute('''
+            INSERT INTO files (
+                original_name, processed_name, file_path, 
+                file_size, total_pages, processed_pages,
+                status, processed_by, order_numbers
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (
+            file_info['original_name'],
+            file_info['processed_name'],
+            file_info['path'],
+            file_info.get('file_size', 0),
+            file_info.get('total_pages', 0),
+            file_info.get('processed_pages', 0),
+            file_info.get('status', 'completed'),
+            session.get('username'),
+            ','.join(file_info.get('order_numbers', []))
+        ))
+        
+        file_id = c.lastrowid
+        
+        # Lưu chi tiết order numbers
+        for order_number in file_info.get('order_numbers', []):
+            c.execute('''
+                INSERT INTO order_numbers (file_id, order_number)
+                VALUES (?, ?)
+            ''', (file_id, order_number))
+        
+        conn.commit()
+        logging.info(f"File info saved to database: {file_info['original_name']}")
+    except Exception as e:
+        logging.error(f"Error saving file info to database: {str(e)}")
+    finally:
+        conn.close()
+
+def get_file_history(limit=100):
+    """Lấy lịch sử xử lý file"""
+    try:
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        
+        c.execute('''
+            SELECT 
+                id, original_name, processed_name, file_size,
+                total_pages, status, created_at, processed_by,
+                order_numbers
+            FROM files 
+            ORDER BY created_at DESC 
+            LIMIT ?
+        ''', (limit,))
+        
+        files = []
+        for row in c.fetchall():
+            files.append({
+                'id': row[0],
+                'original_name': row[1],
+                'processed_name': row[2],
+                'file_size': row[3],
+                'total_pages': row[4],
+                'status': row[5],
+                'created_at': row[6],
+                'processed_by': row[7],
+                'order_numbers': row[8].split(',') if row[8] else []
+            })
+        
+        return files
+    except Exception as e:
+        logging.error(f"Error getting file history: {str(e)}")
+        return []
+    finally:
+        conn.close()
+
+# Khởi tạo database khi khởi động ứng dụng
+init_db()
+
+def is_admin(username):
+    return username == 'daniel'
+
+def get_active_users():
+    current_time = datetime.now()
+    # Xóa các phiên đăng nhập đã hết hạn (30 phút)
+    expired_users = [user for user, data in active_users.items() 
+                    if (current_time - data['last_activity']).total_seconds() > 1800]
+    for user in expired_users:
+        del active_users[user]
+    return active_users
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 def check_poppler_installation():
     if platform.system() == 'Windows':
@@ -72,17 +246,30 @@ UPLOAD_FOLDER = 'temp'
 DEBUG_FOLDER = os.path.join(UPLOAD_FOLDER, 'debug')
 ALLOWED_EXTENSIONS = {'pdf'}
 
-app.config['UPLOAD_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'temp')
+# Đảm bảo đường dẫn tuyệt đối cho thư mục upload
+app.config['UPLOAD_FOLDER'] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'temp'))
 app.config['MAX_CONTENT_LENGTH'] = None  # Bỏ giới hạn kích thước file
 
 # Thêm cấu hình cho thư mục archive
 ARCHIVE_FOLDER = 'archive'
-app.config['ARCHIVE_FOLDER'] = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'archive')
+app.config['ARCHIVE_FOLDER'] = os.path.abspath(os.path.join(os.path.dirname(__file__), 'archive'))
 
-# Đảm bảo thư mục archive tồn tại
+def ensure_dir(directory):
+    """Đảm bảo thư mục tồn tại và có quyền truy cập"""
+    if not os.path.exists(directory):
+        try:
+            os.makedirs(directory, exist_ok=True)
+            logging.info(f"Created directory: {directory}")
+            # Thêm quyền ghi cho thư mục trên Windows
+            if platform.system() == 'Windows':
+                os.chmod(directory, 0o777)
+        except Exception as e:
+            logging.error(f"Error creating directory {directory}: {str(e)}")
+            raise
+
+# Đảm bảo các thư mục cần thiết tồn tại
 for folder in [app.config['UPLOAD_FOLDER'], app.config['ARCHIVE_FOLDER']]:
-    if not os.path.exists(folder):
-        os.makedirs(folder, exist_ok=True)
+    ensure_dir(folder)
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
@@ -291,53 +478,100 @@ def check_continuity(sequence1, sequence2):
     
     return True, "Hai dãy số liên tục với nhau"
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        if username in VALID_ACCOUNTS and VALID_ACCOUNTS[username] == password:
+            # Kiểm tra số lượng người dùng đang đăng nhập
+            active_users_list = get_active_users()
+            if len(active_users_list) >= MAX_CONCURRENT_USERS and username not in active_users_list:
+                return render_template('login.html', 
+                    error='Hệ thống đã đạt giới hạn số lượng người dùng đăng nhập đồng thời. Vui lòng thử lại sau.')
+            
+            # Lưu thông tin đăng nhập
+            session['username'] = username
+            active_users[username] = {
+                'last_activity': datetime.now(),
+                'ip_address': request.remote_addr,
+                'user_agent': request.user_agent.string
+            }
+            return redirect(url_for('home'))
+        else:
+            return render_template('login.html', error='Tên đăng nhập hoặc mật khẩu không đúng')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    username = session.get('username')
+    if username:
+        if username in active_users:
+            del active_users[username]
+    session.pop('username', None)
+    return redirect(url_for('login'))
+
 @app.route('/')
+@login_required
 def home():
     return render_template('index.html')
 
 @app.route('/number-analysis')
+@login_required
 def number_analysis():
     return render_template('number_analysis.html')
 
 @app.route('/data-analysis')
+@login_required
 def data_analysis():
     return render_template('data_analysis.html')
 
 @app.route('/calculate', methods=['POST'])
 def calculate():
-    mode = request.form.get('mode')
-    
-    if mode == 'single':
-        numbers = request.form.get('numbers', '')
-        parsed_numbers = parse_number_sequence(numbers)
+    try:
+        mode = request.form.get('mode')
+        logging.info(f"Received request with mode: {mode}")
         
-        if parsed_numbers is None:
-            return jsonify({"error": "Định dạng dãy số không hợp lệ"})
+        if mode == 'single':
+            numbers = request.form.get('numbers', '')
+            logging.info(f"Received numbers: {numbers}")
+            parsed_numbers = parse_number_sequence(numbers)
+            
+            if parsed_numbers is None:
+                return jsonify({"error": "Định dạng dãy số không hợp lệ"})
+            
+            logging.info(f"Parsed numbers: {parsed_numbers}")
+            return jsonify({
+                "count": len(parsed_numbers),
+                "numbers": parsed_numbers
+            })
         
-        return jsonify({
-            "count": len(parsed_numbers),
-            "numbers": parsed_numbers
-        })
-    
-    elif mode == 'dual':
-        sequence1 = request.form.get('sequence1', '')
-        sequence2 = request.form.get('sequence2', '')
+        elif mode == 'dual':
+            sequence1 = request.form.get('sequence1', '')
+            sequence2 = request.form.get('sequence2', '')
+            logging.info(f"Received sequences: {sequence1}, {sequence2}")
+            
+            parsed_sequence1 = parse_number_sequence(sequence1)
+            parsed_sequence2 = parse_number_sequence(sequence2)
+            
+            if parsed_sequence1 is None or parsed_sequence2 is None:
+                return jsonify({"error": "Định dạng dãy số không hợp lệ"})
+            
+            is_continuous, message = check_continuity(parsed_sequence1, parsed_sequence2)
+            return jsonify({
+                "is_continuous": is_continuous,
+                "continuity_message": message
+            })
         
-        parsed_sequence1 = parse_number_sequence(sequence1)
-        parsed_sequence2 = parse_number_sequence(sequence2)
-        
-        if parsed_sequence1 is None or parsed_sequence2 is None:
-            return jsonify({"error": "Định dạng dãy số không hợp lệ"})
-        
-        is_continuous, message = check_continuity(parsed_sequence1, parsed_sequence2)
-        return jsonify({
-            "is_continuous": is_continuous,
-            "continuity_message": message
-        })
-    
-    return jsonify({"error": "Chế độ không hợp lệ"})
+        return jsonify({"error": "Chế độ không hợp lệ"})
+    except Exception as e:
+        logging.error(f"Error in calculate route: {str(e)}")
+        return jsonify({"error": f"Lỗi xử lý: {str(e)}"})
 
 @app.route('/pdf-analysis')
+@login_required
 def pdf_analysis():
     return render_template('pdf_analysis.html')
 
@@ -359,57 +593,85 @@ def upload_pdf():
         # Reset tiến trình
         reset_progress()
         
+        logging.info("Starting file upload process")
+        
+        # Đảm bảo thư mục temp tồn tại
+        ensure_dir(app.config['UPLOAD_FOLDER'])
+        ensure_dir(os.path.join(app.config['UPLOAD_FOLDER'], 'debug'))
+        
         if 'file' not in request.files:
-            print("No file part in request")  # Thêm logging
+            logging.error("No file part in request")
             return jsonify({'error': 'Không tìm thấy file'}), 400
             
         file = request.files['file']
         if file.filename == '':
-            print("No selected file")  # Thêm logging
+            logging.error("No selected file")
             return jsonify({'error': 'Chưa chọn file'}), 400
             
         if file and allowed_file(file.filename):
             try:
                 # Log thông tin file
-                print(f"Processing file: {file.filename}")
+                logging.info(f"Processing file: {file.filename}")
                 
-                # Đảm bảo thư mục temp tồn tại
-                if not os.path.exists(app.config['UPLOAD_FOLDER']):
-                    os.makedirs(app.config['UPLOAD_FOLDER'])
-                    print(f"Created upload folder: {app.config['UPLOAD_FOLDER']}")
+                # Tạo tên file an toàn với timestamp
+                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+                safe_filename = f"{timestamp}_{secure_filename(file.filename)}"
+                temp_path = os.path.join(app.config['UPLOAD_FOLDER'], safe_filename)
+                
+                # Log đường dẫn đầy đủ
+                logging.info(f"Full temp path: {temp_path}")
                 
                 # Xóa các file cũ
                 cleanup_folders()
                 
+                # Đảm bảo thư mục tồn tại trước khi lưu file
+                ensure_dir(os.path.dirname(temp_path))
+                
                 # Lưu file tạm thời
-                filename = secure_filename(file.filename)
-                temp_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                 file.save(temp_path)
-                print(f"File saved to: {temp_path}")
+                logging.info(f"File saved to: {temp_path}")
+                
+                # Kiểm tra file có tồn tại không
+                if not os.path.exists(temp_path):
+                    logging.error(f"File not found after saving: {temp_path}")
+                    return jsonify({'error': 'Lỗi khi lưu file tạm thời'}), 500
+                
+                # Log file permissions
+                logging.info(f"Saved file permissions: {oct(os.stat(temp_path).st_mode)[-3:]}")
                 
                 # Kiểm tra file PDF có bị mã hóa không
                 try:
                     pdf_reader = PyPDF2.PdfReader(temp_path)
                     if pdf_reader.is_encrypted:
+                        logging.error("PDF file is encrypted")
                         return jsonify({'error': 'File PDF được bảo vệ bằng mật khẩu. Vui lòng gỡ mật khẩu trước khi tải lên.'}), 400
                     
                     # Cập nhật tổng số trang
                     progress_data['total_pages'] = len(pdf_reader.pages)
+                    logging.info(f"PDF has {progress_data['total_pages']} pages")
                     
                 except Exception as e:
+                    logging.error(f"Error reading PDF: {str(e)}")
                     return jsonify({'error': f'File PDF không hợp lệ hoặc bị hỏng: {str(e)}'}), 400
 
                 # Kiểm tra cài đặt Poppler
                 try:
                     check_poppler_installation()
+                    logging.info("Poppler installation check passed")
                 except RuntimeError as e:
+                    logging.error(f"Poppler installation error: {str(e)}")
                     return jsonify({
                         'error': f'Lỗi cài đặt Poppler: {str(e)}. Vui lòng cài đặt lại Poppler theo hướng dẫn.'
                     }), 500
                 
-                # Đọc PDF và chuyển thành ảnh với poppler_path
+                # Đọc PDF và chuyển thành ảnh
                 try:
-                    print(f"Converting PDF to images: {temp_path}")
+                    logging.info(f"Converting PDF to images: {temp_path}")
+                    # Log environment
+                    logging.info(f"Platform: {platform.system()}")
+                    logging.info(f"POPPLER_PATH: {POPPLER_PATH}")
+                    logging.info(f"PATH: {os.environ['PATH']}")
+                    
                     # Sử dụng cấu hình khác nhau cho Windows và Linux
                     images = convert_from_path(
                         temp_path,
@@ -427,13 +689,15 @@ def upload_pdf():
                         grayscale=True,
                         size=(2000, None)
                     )
-                    print(f"Successfully converted {len(images)} pages")
+                    logging.info(f"Successfully converted {len(images)} pages")
                     
                     if not images:
+                        logging.error("No images extracted from PDF")
                         return jsonify({'error': 'Không thể đọc nội dung file PDF. File có thể rỗng hoặc bị hỏng.'}), 400
                         
                 except Exception as e:
                     error_msg = str(e)
+                    logging.error(f"PDF conversion error: {error_msg}")
                     if "DLL" in error_msg:
                         return jsonify({
                             'error': 'Thiếu file DLL của Poppler. Vui lòng cài đặt lại Poppler và đảm bảo các file DLL được copy đúng vị trí.'
@@ -513,7 +777,7 @@ def upload_pdf():
                         continue
                 
                 # Lưu PDF tạm thời
-                output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'sorted_' + filename)
+                output_path = os.path.join(app.config['UPLOAD_FOLDER'], 'sorted_' + safe_filename)
                 try:
                     with open(output_path, 'wb') as output_file:
                         pdf_writer.write(output_file)
@@ -523,10 +787,18 @@ def upload_pdf():
                 
                 # Lưu thông tin file đã xử lý vào session
                 session['processed_file'] = {
-                    'original_name': filename,
-                    'processed_name': 'sorted_' + filename,
-                    'path': output_path
+                    'original_name': safe_filename,
+                    'processed_name': 'sorted_' + safe_filename,
+                    'path': output_path,
+                    'file_size': os.path.getsize(output_path),
+                    'total_pages': progress_data['total_pages'],
+                    'processed_pages': progress_data['processed_pages'],
+                    'status': 'completed',
+                    'order_numbers': sorted_order_numbers
                 }
+                
+                # Lưu thông tin vào database
+                save_file_info(session['processed_file'])
                 
                 return jsonify({
                     'success': True,
@@ -534,7 +806,7 @@ def upload_pdf():
                     'original_order_numbers': original_order_numbers,
                     'sorted_order_numbers': sorted_order_numbers,
                     'total_orders': len(sorted_order_numbers),
-                    'output_file': 'sorted_' + filename
+                    'output_file': 'sorted_' + safe_filename
                 })
                 
             except Exception as e:
@@ -546,36 +818,34 @@ def upload_pdf():
         return jsonify({'error': f'Lỗi không xác định: {str(e)}'}), 500
 
 def cleanup_folders():
-    """Xóa hoàn toàn thư mục temp và debug"""
+    """Xóa tất cả file PDF trong thư mục temp và debug"""
     try:
         # Xóa thư mục debug nếu tồn tại
-        if os.path.exists(DEBUG_FOLDER):
+        debug_folder = os.path.join(app.config['UPLOAD_FOLDER'], 'debug')
+        if os.path.exists(debug_folder):
             try:
-                shutil.rmtree(DEBUG_FOLDER)
+                shutil.rmtree(debug_folder)
+                logging.info("Cleaned up debug folder")
             except Exception as e:
-                print(f'Error removing debug folder: {e}')
+                logging.error(f'Error removing debug folder: {e}')
 
-        # Xóa thư mục temp nếu tồn tại
-        if os.path.exists(UPLOAD_FOLDER):
-            try:
-                # Thử xóa từng file trong thư mục temp
-                for filename in os.listdir(UPLOAD_FOLDER):
-                    file_path = os.path.join(UPLOAD_FOLDER, filename)
+        # Xóa tất cả file PDF trong thư mục temp
+        if os.path.exists(app.config['UPLOAD_FOLDER']):
+            for filename in os.listdir(app.config['UPLOAD_FOLDER']):
+                if filename.endswith('.pdf'):
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
                     try:
-                        if os.path.isfile(file_path):
+                        if os.access(file_path, os.W_OK):
                             os.unlink(file_path)
-                        elif os.path.isdir(file_path):
-                            shutil.rmtree(file_path)
+                            logging.info(f"Removed PDF file: {filename}")
+                        else:
+                            logging.warning(f"No write permission for: {file_path}")
                     except Exception as e:
-                        print(f'Error removing {file_path}: {e}')
+                        logging.error(f'Error removing {file_path}: {e}')
                         continue
-                # Sau khi xóa hết file, thử xóa thư mục temp
-                os.rmdir(UPLOAD_FOLDER)
-            except Exception as e:
-                print(f'Error removing temp folder: {e}')
             
     except Exception as e:
-        print(f'Error during cleanup: {e}')
+        logging.error(f'Error during cleanup: {e}')
 
 @app.route('/download-pdf/<filename>')
 def download_pdf(filename):
@@ -591,6 +861,15 @@ def download_pdf(filename):
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         if not os.path.exists(file_path):
             return jsonify({'error': 'File không tồn tại'}), 404
+
+        # Sao chép file vào thư mục Archive trước khi gửi
+        archive_path = os.path.join(app.config['ARCHIVE_FOLDER'], filename)
+        try:
+            shutil.copy2(file_path, archive_path)
+            logging.info(f"File copied to archive: {archive_path}")
+        except Exception as e:
+            logging.error(f"Error copying file to archive: {str(e)}")
+            return jsonify({'error': 'Không thể lưu file vào archive'}), 500
             
         # Thêm headers để force download vào thư mục Downloads
         response = send_from_directory(
@@ -608,10 +887,23 @@ def download_pdf(filename):
         response.headers["Expires"] = "0"
         response.headers["Access-Control-Allow-Origin"] = "*"
         
+        # Xóa file khỏi temp sau khi gửi
+        @response.call_on_close
+        def cleanup():
+            try:
+                if os.path.exists(file_path):
+                    os.unlink(file_path)
+                    logging.info(f"Removed file from temp after download: {filename}")
+                
+                # Xóa thông tin file khỏi session
+                session.pop('processed_file', None)
+            except Exception as e:
+                logging.error(f"Error cleaning up after download: {str(e)}")
+        
         return response
         
     except Exception as e:
-        print(f"Error during download: {str(e)}")
+        logging.error(f"Error during download: {str(e)}")
         return jsonify({'error': 'Lỗi khi tải file'}), 500
 
 @app.route('/cleanup-pdf/<filename>')
@@ -624,6 +916,7 @@ def cleanup_pdf(filename):
     return jsonify({'success': False})
 
 @app.route('/archive')
+@login_required
 def archive():
     # Lấy danh sách các file trong thư mục archive
     files = []
@@ -637,41 +930,6 @@ def archive():
                 'size': f"{file_stats.st_size / 1024:.1f} KB"
             })
     return render_template('archive.html', files=files)
-
-@app.route('/archive-pdf/<filename>')
-def archive_pdf(filename):
-    try:
-        # Kiểm tra xem file đã được xử lý chưa
-        if 'processed_file' not in session:
-            return jsonify({'error': 'Không tìm thấy file đã xử lý'}), 404
-            
-        processed_file = session['processed_file']
-        if processed_file['processed_name'] != filename:
-            return jsonify({'error': 'File không khớp với file đã xử lý'}), 400
-            
-        source_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        dest_path = os.path.join(app.config['ARCHIVE_FOLDER'], filename)
-        
-        if not os.path.exists(source_path):
-            return jsonify({'error': 'File không tồn tại trong thư mục temp'}), 404
-                
-        if os.path.exists(dest_path):
-            try:
-                os.remove(dest_path)
-            except Exception as e:
-                print(f"Error removing existing archive file: {str(e)}")
-                return jsonify({'error': 'Không thể xóa file cũ trong archive'}), 500
-                
-        try:
-            shutil.copy2(source_path, dest_path)
-            return jsonify({'success': True, 'message': 'File đã được lưu trữ thành công'})
-        except Exception as e:
-            print(f"Error copying file to archive: {str(e)}")
-            return jsonify({'error': 'Không thể copy file vào archive'}), 500
-        
-    except Exception as e:
-        print(f"Error during archiving: {str(e)}")
-        return jsonify({'error': str(e)}), 500
 
 @app.route('/download-archived/<filename>')
 def download_archived(filename):
@@ -692,6 +950,175 @@ def reset_progress():
         'processed_pages': 0,
         'complete': False
     }
+
+@app.route('/admin')
+@login_required
+def admin_dashboard():
+    if not is_admin(session['username']):
+        return redirect(url_for('home'))
+    
+    active_users_list = get_active_users()
+    return render_template('admin.html', active_users=active_users_list)
+
+@app.route('/admin/force-logout/<username>')
+@login_required
+def force_logout(username):
+    if not is_admin(session['username']):
+        return jsonify({'error': 'Không có quyền thực hiện thao tác này'}), 403
+    
+    if username in active_users:
+        del active_users[username]
+        return jsonify({'success': True, 'message': f'Đã đăng xuất người dùng {username}'})
+    return jsonify({'error': 'Người dùng không tồn tại hoặc đã đăng xuất'}), 404
+
+@app.route('/admin/clear-all')
+@login_required
+def clear_all_sessions():
+    if not is_admin(session['username']):
+        return jsonify({'error': 'Không có quyền thực hiện thao tác này'}), 403
+    
+    active_users.clear()
+    return jsonify({'success': True, 'message': 'Đã đăng xuất tất cả người dùng'})
+
+# Cập nhật last_activity cho mỗi request
+@app.before_request
+def update_last_activity():
+    if 'username' in session:
+        username = session['username']
+        if username in active_users:
+            active_users[username]['last_activity'] = datetime.now()
+
+@app.route('/check-file-exists/<filename>')
+@login_required
+def check_file_exists(filename):
+    """Kiểm tra xem file có tồn tại hay không"""
+    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+    exists = os.path.isfile(file_path)
+    return jsonify({"exists": exists})
+
+@app.route('/history')
+@login_required
+def history():
+    """Hiển thị lịch sử xử lý file"""
+    if not is_admin(session['username']):
+        return redirect(url_for('home'))
+    files = get_file_history()
+    return render_template('history.html', files=files)
+
+def cleanup_old_data():
+    """Xóa dữ liệu cũ hơn 24 giờ"""
+    try:
+        # Lấy thời điểm 24 giờ trước
+        cutoff_time = datetime.now() - timedelta(hours=24)
+        logging.info(f"Cleaning up data older than: {cutoff_time}")
+        
+        # 1. Xóa file PDF cũ trong thư mục archive
+        if os.path.exists(app.config['ARCHIVE_FOLDER']):
+            for filename in os.listdir(app.config['ARCHIVE_FOLDER']):
+                if filename.endswith('.pdf'):
+                    file_path = os.path.join(app.config['ARCHIVE_FOLDER'], filename)
+                    file_time = datetime.fromtimestamp(os.path.getmtime(file_path))
+                    
+                    if file_time < cutoff_time:
+                        try:
+                            os.unlink(file_path)
+                            logging.info(f"Removed old archived file: {filename}")
+                        except Exception as e:
+                            logging.error(f"Error removing old archived file {filename}: {e}")
+        
+        # 2. Xóa dữ liệu cũ trong database
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        
+        # Lấy danh sách file cần xóa
+        c.execute('''
+            SELECT file_path
+            FROM files
+            WHERE created_at < ?
+        ''', (cutoff_time.strftime('%Y-%m-%d %H:%M:%S'),))
+        
+        old_files = c.fetchall()
+        
+        # Xóa dữ liệu từ bảng order_numbers
+        c.execute('''
+            DELETE FROM order_numbers
+            WHERE file_id IN (
+                SELECT id FROM files
+                WHERE created_at < ?
+            )
+        ''', (cutoff_time.strftime('%Y-%m-%d %H:%M:%S'),))
+        
+        # Xóa dữ liệu từ bảng files
+        c.execute('''
+            DELETE FROM files
+            WHERE created_at < ?
+        ''', (cutoff_time.strftime('%Y-%m-%d %H:%M:%S'),))
+        
+        conn.commit()
+        logging.info(f"Cleaned up {len(old_files)} records from database")
+        
+    except Exception as e:
+        logging.error(f"Error during data cleanup: {e}")
+    finally:
+        if 'conn' in locals():
+            conn.close()
+
+# Khởi tạo scheduler
+scheduler = BackgroundScheduler()
+scheduler.add_job(
+    func=cleanup_old_data,
+    trigger=IntervalTrigger(hours=1),  # Chạy mỗi giờ để kiểm tra và xóa dữ liệu cũ
+    id='cleanup_old_data',
+    name='Cleanup old data every hour',
+    replace_existing=True
+)
+
+# Bắt đầu scheduler
+scheduler.start()
+
+# Đảm bảo scheduler được dừng khi ứng dụng tắt
+atexit.register(lambda: scheduler.shutdown())
+
+@app.route('/clear-history', methods=['POST'])
+@login_required
+def clear_history():
+    """Xóa toàn bộ lịch sử và file trong archive"""
+    if not is_admin(session['username']):
+        return jsonify({'error': 'Unauthorized access'}), 403
+        
+    try:
+        # 1. Xóa dữ liệu từ database
+        conn = sqlite3.connect(DATABASE)
+        c = conn.cursor()
+        
+        # Xóa dữ liệu từ bảng order_numbers
+        c.execute('DELETE FROM order_numbers')
+        
+        # Xóa dữ liệu từ bảng files
+        c.execute('DELETE FROM files')
+        
+        conn.commit()
+
+        # 2. Xóa tất cả file PDF trong thư mục archive
+        archive_folder = app.config['ARCHIVE_FOLDER']
+        if os.path.exists(archive_folder):
+            for filename in os.listdir(archive_folder):
+                if filename.endswith('.pdf'):
+                    file_path = os.path.join(archive_folder, filename)
+                    try:
+                        os.unlink(file_path)
+                        logging.info(f"Removed archived file: {filename}")
+                    except Exception as e:
+                        logging.error(f"Error removing archived file {filename}: {e}")
+                        continue
+
+        return jsonify({'success': True, 'message': 'Đã xóa toàn bộ lịch sử và file'})
+    except Exception as e:
+        logging.error(f"Error clearing history: {str(e)}")
+        return jsonify({'error': f'Error clearing history: {str(e)}'}), 500
+    finally:
+        if 'conn' in locals():
+            conn.close()
 
 if __name__ == '__main__':
     app.run(debug=True) 

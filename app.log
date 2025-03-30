@@ -1,0 +1,46 @@
+2025-03-30 12:44:06,960 - werkzeug - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-03-30 12:44:06,960 - werkzeug - INFO - [33mPress CTRL+C to quit[0m
+2025-03-30 12:44:06,960 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 12:44:07,691 - werkzeug - WARNING -  * Debugger is active!
+2025-03-30 12:44:07,691 - werkzeug - INFO -  * Debugger PIN: 141-998-857
+2025-03-30 12:44:30,406 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:44:30] "GET / HTTP/1.1" 200 -
+2025-03-30 12:44:34,026 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:44:34] "GET / HTTP/1.1" 200 -
+2025-03-30 12:44:34,544 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:44:34] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-03-30 12:45:33,711 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:45:33] "GET / HTTP/1.1" 200 -
+2025-03-30 12:45:35,846 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:45:35] "GET / HTTP/1.1" 200 -
+2025-03-30 12:45:57,780 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:45:57] "GET / HTTP/1.1" 200 -
+2025-03-30 12:45:58,504 - werkzeug - INFO - 127.0.0.1 - - [30/Mar/2025 12:45:58] "GET / HTTP/1.1" 200 -
+2025-03-30 12:46:21,373 - werkzeug - INFO -  * Detected change in 'D:\\Automation\\app.py', reloading
+2025-03-30 12:46:22,260 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 12:48:20,240 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 12:48:23,106 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 12:53:46,456 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 12:54:21,814 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 12:54:31,056 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:09:44,719 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:10:44,213 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:47:12,981 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:47:56,431 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:48:19,056 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:52:24,017 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 13:52:53,164 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:54:37,829 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:54:48,909 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:57:18,463 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:57:40,172 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:58:12,007 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:59:11,673 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:59:37,265 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:59:45,648 - werkzeug - INFO -  * Restarting with stat
+2025-03-30 23:59:47,043 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:04:12,751 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:04:36,935 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:04:55,626 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:05:15,452 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:12:30,954 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:12:54,923 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:13:00,384 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:13:23,120 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:13:31,175 - werkzeug - INFO -  * Restarting with stat
+2025-03-31 00:21:37,463 - werkzeug - INFO -  * Restarting with stat

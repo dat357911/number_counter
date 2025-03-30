@@ -129,6 +129,11 @@
         margin-top: 30px;
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
         border: 1px solid #e0e0e0;
+        transition: all 0.3s ease;
+      }
+      .result-section:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
       }
       .result-section h4 {
         color: #1a237e;
@@ -151,18 +156,20 @@
         padding: 20px;
         margin-top: 20px;
         font-size: 1.1rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
       }
       .alert-success {
-        background: #e8f5e9;
-        color: #2e7d32;
+        background: linear-gradient(135deg, #81c784 0%, #a5d6a7 100%);
+        color: #1b5e20;
       }
       .alert-danger {
-        background: #fbe9e7;
-        color: #d32f2f;
+        background: linear-gradient(135deg, #ef9a9a 0%, #ffcdd2 100%);
+        color: #b71c1c;
       }
       .alert-warning {
-        background: #fff3e0;
-        color: #f57c00;
+        background: linear-gradient(135deg, #ffcc80 0%, #ffe0b2 100%);
+        color: #e65100;
       }
       @media (max-width: 768px) {
         .card-body {
@@ -220,7 +227,31 @@
                     <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
                   >
                 </li>
+                <li>
+                  <a class="dropdown-item" href="/archive">
+                    <i class="fas fa-archive"></i> PDF Archive</a
+                  >
+                </li>
+                {% if session.get('username') == 'daniel' %}
+                <li>
+                  <a class="dropdown-item" href="/history">
+                    <i class="fas fa-history"></i> History</a
+                  >
+                </li>
+                {% endif %}
               </ul>
+            </li>
+            {% if session.get('username') == 'daniel' %}
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">
+                <i class="fas fa-user-shield"></i> Admin
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">
+                <i class="fas fa-sign-out-alt"></i> Log out
+              </a>
             </li>
           </ul>
         </div>
@@ -349,6 +380,45 @@
         // Khởi tạo giao diện
         switchMode();
 
+        // Thêm event listener cho paste event
+        const sequence1Input = document.getElementById("sequence1");
+        const sequence2Input = document.getElementById("sequence2");
+
+        sequence1Input.addEventListener("paste", handlePaste);
+        sequence2Input.addEventListener("paste", handlePaste);
+
+        function handlePaste(e) {
+          const clipboardData = e.clipboardData || window.clipboardData;
+          const pastedData = clipboardData.getData("text");
+
+          // Tách dữ liệu thành các dòng
+          const rows = pastedData.split(/\r?\n/).filter((row) => row.trim());
+
+          // Xử lý từng dòng để lấy cột 2 và 5
+          const processedData = rows
+            .map((row) => {
+              const columns = row.split("\t");
+              if (columns.length >= 5) {
+                return {
+                  sequence: columns[1].trim(), // Cột 2
+                  size: columns[4].trim(), // Cột 5
+                };
+              }
+              return null;
+            })
+            .filter((item) => item !== null);
+
+          // Tổng hợp dữ liệu
+          if (processedData.length > 0) {
+            e.preventDefault(); // Chỉ chặn hành vi mặc định khi xử lý thành công
+            const sequences = processedData
+              .map((item) => item.sequence)
+              .join(",");
+            e.target.value = sequences;
+          }
+          // Nếu không tìm thấy định dạng phù hợp, cho phép paste bình thường
+        }
+
         // Thêm xử lý phím tắt cho toàn bộ trang
         document.addEventListener("keydown", function (event) {
           // Kiểm tra nếu đang focus vào input
@@ -443,29 +513,28 @@
         resultDiv.style.display = "none";
         errorDiv.style.display = "none";
 
-        let data;
+        let formData = new FormData();
         if (mode === "single") {
           const numbers = document.getElementById("numbers").value;
-          data = `mode=single&numbers=${encodeURIComponent(numbers)}`;
+          formData.append("mode", "single");
+          formData.append("numbers", numbers);
         } else {
           const sequence1 = document.getElementById("sequence1").value;
           const sequence2 = document.getElementById("sequence2").value;
-          data = `mode=dual&sequence1=${encodeURIComponent(
-            sequence1
-          )}&sequence2=${encodeURIComponent(sequence2)}`;
+          formData.append("mode", "dual");
+          formData.append("sequence1", sequence1);
+          formData.append("sequence2", sequence2);
         }
 
         fetch("/calculate", {
           method: "POST",
-          headers: {
-            "Content-Type": "application/x-www-form-urlencoded",
-          },
-          body: data,
+          body: formData,
         })
           .then((response) => response.json())
           .then((data) => {
             if (data.error) {
               errorDiv.textContent = data.error;
+              errorDiv.className = "alert alert-danger";
               errorDiv.style.display = "block";
             } else {
               if (mode === "single") {
@@ -473,6 +542,7 @@
                 document.getElementById("numberList").textContent =
                   data.numbers.join(", ");
                 resultDiv.className = "alert alert-success";
+                resultDiv.style.display = "block";
               } else {
                 const continuityMessage =
                   document.getElementById("continuityMessage");
@@ -486,15 +556,17 @@
                   duplicateMessage.textContent = data.continuity_message;
                   duplicateWarning.style.display = "block";
                   continuityMessage.style.display = "none";
-                  resultDiv.className = "alert alert-danger";
+                  resultDiv.className = "alert alert-warning";
                 } else {
                   duplicateWarning.style.display = "none";
                   continuityMessage.style.display = "block";
                   continuityMessage.textContent = data.continuity_message;
-                  if (data.continuity_message.includes("Không liên tục")) {
-                    resultDiv.className = "alert alert-danger";
-                  } else if (data.continuity_message.includes("Liên tục")) {
+
+                  // Cập nhật logic hiển thị màu cho thông báo kiểm tra tính liên tục
+                  if (data.is_continuous) {
                     resultDiv.className = "alert alert-success";
+                  } else if (data.continuity_message.includes("khoảng trống")) {
+                    resultDiv.className = "alert alert-danger";
                   } else {
                     resultDiv.className = "alert alert-warning";
                   }
@@ -506,6 +578,7 @@
           .catch((error) => {
             errorDiv.textContent =
               "Có lỗi xảy ra khi tính toán. Vui lòng thử lại.";
+            errorDiv.className = "alert alert-danger";
             errorDiv.style.display = "block";
           });
       }

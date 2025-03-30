@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>PDF Archive - Daniel</title>
+    <title>Lịch Sử Xử Lý - Daniel</title>
     <link
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css"
       rel="stylesheet"
@@ -67,76 +67,32 @@
       .table td {
         vertical-align: middle;
       }
-      .btn-download {
-        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
-        color: white;
-        border: none;
-        padding: 8px 16px;
+      .badge {
+        padding: 8px 12px;
         border-radius: 8px;
-        transition: all 0.3s ease;
+        font-weight: 500;
       }
-      .btn-download:hover {
+      .badge-completed {
         background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
-        transform: translateY(-2px);
-        color: white;
       }
-      .empty-message {
-        text-align: center;
-        padding: 40px;
-        color: #666;
-        font-size: 1.1rem;
-      }
-      .back-button {
-        margin-bottom: 20px;
-      }
-      .alert {
-        border: none;
-        border-radius: 15px;
-        padding: 20px;
-        margin-top: 20px;
-        font-size: 1.1rem;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-        transition: all 0.3s ease;
-      }
-      .alert-success {
-        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
-        color: white;
-      }
-      .alert-danger {
-        background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
-        color: white;
-      }
-      .alert-warning {
+      .badge-processing {
         background: linear-gradient(135deg, #fb8c00 0%, #ffa726 100%);
-        color: white;
       }
-      .result-section {
-        background: #ffffff;
-        border-radius: 15px;
-        padding: 25px;
-        margin-top: 30px;
-        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-        border: 1px solid #e0e0e0;
-        transition: all 0.3s ease;
+      .badge-error {
+        background: linear-gradient(135deg, #e53935 0%, #ef5350 100%);
       }
-      .result-section:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+      .order-numbers {
+        max-width: 200px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
       }
-      .result-section h4 {
-        color: #1a237e;
-        font-weight: 600;
-        margin-bottom: 20px;
-        padding-bottom: 15px;
-        border-bottom: 2px solid #e3f2fd;
-      }
-      .result-section p {
-        color: #2c3e50;
-        font-size: 1.1rem;
-        margin-bottom: 15px;
-      }
-      .result-section strong {
-        color: #1976d2;
+      .order-numbers:hover {
+        overflow: visible;
+        white-space: normal;
+        background: white;
+        position: relative;
+        z-index: 1;
       }
     </style>
   </head>
@@ -184,13 +140,13 @@
                   >
                 </li>
                 <li>
-                  <a class="dropdown-item active" href="/archive">
+                  <a class="dropdown-item" href="/archive">
                     <i class="fas fa-archive"></i> PDF Archive</a
                   >
                 </li>
                 {% if session.get('username') == 'daniel' %}
                 <li>
-                  <a class="dropdown-item" href="/history">
+                  <a class="dropdown-item active" href="/history">
                     <i class="fas fa-history"></i> History</a
                   >
                 </li>
@@ -215,52 +171,55 @@
     </nav>
 
     <div class="main-container">
-      <div class="back-button">
-        <a href="/pdf-analysis" class="btn btn-primary">
-          <i class="fas fa-arrow-left"></i> Quay lại
-        </a>
-      </div>
-
       <div class="card">
         <div class="card-header">
-          <h2>PDF Archive</h2>
+          <h2>History</h2>
         </div>
         <div class="card-body">
           {% if files %}
+          <div class="mb-3">
+            <button onclick="clearHistory()" class="btn btn-danger">
+              <i class="fas fa-trash"></i> Clear History
+            </button>
+          </div>
           <div class="table-responsive">
             <table class="table">
               <thead>
                 <tr>
                   <th>Tên File</th>
-                  <th>Ngày tạo</th>
                   <th>Kích thước</th>
-                  <th class="text-center">Tải xuống</th>
+                  <th>Số trang</th>
+                  <th>Order Numbers</th>
+                  <th>Trạng thái</th>
+                  <th>Người xử lý</th>
+                  <th>Thời gian</th>
                 </tr>
               </thead>
               <tbody>
                 {% for file in files %}
                 <tr>
-                  <td>{{ file.name }}</td>
-                  <td>{{ file.date }}</td>
-                  <td>{{ file.size }}</td>
-                  <td class="text-center">
-                    <a
-                      href="{{ url_for('download_archived', filename=file.name) }}"
-                      class="btn btn-download"
-                      onclick="showDownloadToast()"
-                    >
-                      <i class="fas fa-download"></i> Download
-                    </a>
+                  <td>{{ file.original_name }}</td>
+                  <td>{{ "%.1f"|format(file.file_size / 1024) }} KB</td>
+                  <td>{{ file.total_pages }}</td>
+                  <td class="order-numbers">
+                    {{ file.order_numbers|join(", ") }}
                   </td>
+                  <td>
+                    <span class="badge badge-{{ file.status }}">
+                      {{ file.status }}
+                    </span>
+                  </td>
+                  <td>{{ file.processed_by }}</td>
+                  <td>{{ file.created_at }}</td>
                 </tr>
                 {% endfor %}
               </tbody>
             </table>
           </div>
           {% else %}
-          <div class="empty-message">
-            <i class="fas fa-folder-open fa-3x mb-3"></i>
-            <p>Chưa có file nào được lưu trữ</p>
+          <div class="text-center p-5">
+            <i class="fas fa-history fa-3x mb-3 text-muted"></i>
+            <p class="text-muted">Chưa có lịch sử xử lý nào</p>
           </div>
           {% endif %}
         </div>
@@ -268,5 +227,30 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+      function clearHistory() {
+        if (
+          confirm(
+            "Are you sure you want to clear all history? This action cannot be undone."
+          )
+        ) {
+          fetch("/clear-history", {
+            method: "POST",
+          })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.success) {
+                window.location.reload();
+              } else {
+                alert(data.error || "Failed to clear history");
+              }
+            })
+            .catch((error) => {
+              console.error("Error:", error);
+              alert("An error occurred while clearing history");
+            });
+        }
+      }
+    </script>
   </body>
 </html>

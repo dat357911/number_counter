@@ -65,6 +65,12 @@
         gap: 15px;
         flex-wrap: wrap;
         align-items: center;
+        justify-content: space-between;
+      }
+      .btn-group {
+        display: flex;
+        gap: 15px;
+        align-items: center;
       }
       .btn {
         padding: 12px 25px;
@@ -202,6 +208,12 @@
       .success-row {
         background: #e8f5e9;
       }
+      .selected-row {
+        background-color: #e3f2fd;
+      }
+      .selected-row input {
+        background-color: #e3f2fd;
+      }
       @media (max-width: 768px) {
         .card-body {
           padding: 20px;
@@ -218,6 +230,32 @@
           height: 1px;
           margin: 10px 0;
         }
+      }
+      .navbar .container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+      }
+      .navbar-nav {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+      }
+      .nav-item {
+        display: flex;
+        align-items: center;
+      }
+      .nav-link {
+        padding: 8px 16px;
+        border-radius: 8px;
+        transition: all 0.3s ease;
+      }
+      .nav-link:hover {
+        background: rgba(255, 255, 255, 0.1);
+      }
+      .nav-link.active {
+        background: rgba(255, 255, 255, 0.2);
       }
     </style>
   </head>
@@ -264,7 +302,31 @@
                     <i class="fas fa-file-pdf"></i> Phân Tích PDF</a
                   >
                 </li>
+                <li>
+                  <a class="dropdown-item" href="/archive">
+                    <i class="fas fa-archive"></i> PDF Archive</a
+                  >
+                </li>
+                {% if session.get('username') == 'daniel' %}
+                <li>
+                  <a class="dropdown-item" href="/history">
+                    <i class="fas fa-history"></i> History</a
+                  >
+                </li>
+                {% endif %}
               </ul>
+            </li>
+            {% if session.get('username') == 'daniel' %}
+            <li class="nav-item">
+              <a class="nav-link" href="/admin">
+                <i class="fas fa-user-shield"></i> Admin
+              </a>
+            </li>
+            {% endif %}
+            <li class="nav-item">
+              <a class="nav-link" href="/logout">
+                <i class="fas fa-sign-out-alt"></i> Log out
+              </a>
             </li>
           </ul>
         </div>
@@ -278,22 +340,32 @@
         </div>
         <div class="card-body">
           <div class="table-actions">
-            <button class="btn btn-add-row" onclick="addRow('main')">
-              <i class="fas fa-plus"></i> Thêm Dòng
-            </button>
-            <button class="btn btn-paste" onclick="pasteFromClipboard('main')">
-              <i class="fas fa-paste"></i> Dán từ Excel
-            </button>
+            <div class="btn-group">
+              <button class="btn btn-add-row" onclick="addRow('main')">
+                <i class="fas fa-plus"></i> Add
+              </button>
+              <button class="btn btn-danger" onclick="deleteSelectedRow()">
+                <i class="fas fa-trash"></i> Delete
+              </button>
+              <button
+                class="btn btn-paste"
+                onclick="pasteFromClipboard('main')"
+              >
+                <i class="fas fa-paste"></i> Paste
+              </button>
+            </div>
             <div class="divider"></div>
-            <button class="btn btn-danger" onclick="clearTable('main')">
-              <i class="fas fa-trash"></i> Xóa Tất Cả
-            </button>
-            <button class="btn btn-analyze" onclick="analyzeData()">
-              <i class="fas fa-calculator"></i> Đếm Số
-            </button>
-            <button class="btn btn-analyze" onclick="checkContinuity()">
-              <i class="fas fa-link"></i> Check Tính Liên Tục
-            </button>
+            <div class="btn-group">
+              <button class="btn btn-danger" onclick="clearTable('main')">
+                <i class="fas fa-trash"></i> Clear
+              </button>
+              <button class="btn btn-analyze" onclick="analyzeData()">
+                <i class="fas fa-calculator"></i> Count
+              </button>
+              <button class="btn btn-analyze" onclick="checkContinuity()">
+                <i class="fas fa-link"></i> Check
+              </button>
+            </div>
           </div>
 
           <div class="table-container">
@@ -304,6 +376,7 @@
                   <th>MEAS</th>
                   <th>C/NO</th>
                   <th>CTNs</th>
+                  <th>Size</th>
                 </tr>
               </thead>
               <tbody id="mainTableBody">
@@ -334,6 +407,7 @@
       // Thêm dòng mới vào bảng
       function addRow(side) {
         const tbody = document.getElementById(side + "TableBody");
+        const selectedRow = tbody.querySelector(".selected-row");
         const rowCount = tbody.children.length;
         const row = document.createElement("tr");
 
@@ -342,113 +416,72 @@
         sttCell.textContent = rowCount + 1;
         row.appendChild(sttCell);
 
-        // Các ô nhập liệu
-        ["meas", "cno", "ctns"].forEach((_, index) => {
+        // Input cells
+        ["meas", "cno", "ctns", "size"].forEach((_, index) => {
           const cell = document.createElement("td");
           const input = document.createElement("input");
           input.type = "text";
           input.className = "form-control";
 
-          // Thêm sự kiện paste cho từng input
+          // Add click event for row selection
+          cell.addEventListener("click", (e) =>
+            handleRowSelection(e, side + "TableBody")
+          );
+
+          // Add paste event handler
           input.addEventListener("paste", async function (e) {
             e.preventDefault();
             try {
               const text = e.clipboardData.getData("text");
 
-              // Tách dữ liệu thành ma trận 2D
-              let rows = text.split(/\r\n|\r|\n/).filter((row) => row.trim());
-              const matrix = rows.map((row) => row.split("\t"));
+              if (side === "continuity") {
+                await pasteFromClipboard("continuity");
+              } else {
+                const rows = text
+                  .split(/\r\n|\r|\n/)
+                  .filter((row) => row.trim());
 
-              // Xác định vị trí paste
-              const currentCell = this;
-              const currentRow = currentCell.closest("tr");
-              const currentIndex = Array.from(
-                currentRow.querySelectorAll("input")
-              ).indexOf(currentCell);
-              const tbody = currentRow.closest("tbody");
-              const side = tbody.id.replace("TableBody", "");
+                // Lấy vị trí của ô hiện tại
+                const currentRow = this.closest("tr");
+                const tbody = currentRow.closest("tbody");
 
-              // Phân tích cấu trúc dữ liệu
-              const columnCount = Math.max(...matrix.map((row) => row.length));
-              let processedData = [];
-              let currentGroup = { meas: "", cno: [], ctns: "" };
+                // Xóa nội dung cũ của bảng
+                tbody.innerHTML = "";
 
-              // Xử lý từng dòng dữ liệu
-              matrix.forEach((row, rowIndex) => {
-                // Nếu dòng có đủ 3 cột hoặc có cột MEAS
-                if (row.length >= 3 || (row.length >= 1 && row[0].trim())) {
-                  // Lưu nhóm dữ liệu trước đó nếu có
-                  if (currentGroup.meas || currentGroup.cno.length > 0) {
-                    processedData.push({
-                      meas: currentGroup.meas,
-                      cno: currentGroup.cno.join(""),
-                      ctns: currentGroup.ctns,
-                    });
-                  }
-                  // Tạo nhóm mới
-                  currentGroup = {
-                    meas: row[0] ? row[0].trim() : "",
-                    cno: row[1] ? [row[1].trim()] : [],
-                    ctns: row[2] ? row[2].trim() : "",
-                  };
-                } else if (row.length >= 1) {
-                  // Nếu là dòng tiếp theo và có giá trị
-                  if (row.length >= 2) {
-                    // Nếu dòng có ít nhất 2 cột
-                    if (row[1] && row[1].trim()) {
-                      currentGroup.cno.push(row[1].trim());
-                    } else {
-                      currentGroup.cno.push(row[0].trim());
+                // Xử lý từng dòng dữ liệu
+                rows.forEach((row, index) => {
+                  const columns = row.split("\t");
+
+                  if (columns.length >= 5) {
+                    if (side === "main") {
+                      const newRow = addRow(side);
+                      const inputs = newRow.querySelectorAll("input");
+                      if (columns[0])
+                        inputs[0].value = columns[0]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // MEAS
+                      if (columns[1])
+                        inputs[1].value = columns[1]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // C/NO
+                      if (columns[2])
+                        inputs[2].value = columns[2]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // CTN
+                      if (columns[4])
+                        inputs[3].value = columns[4]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // SIZE
                     }
-                    // Cập nhật CTNs nếu có
-                    if (row.length >= 3 && row[2] && row[2].trim()) {
-                      currentGroup.ctns = row[2].trim();
-                    }
-                  } else {
-                    // Nếu chỉ có 1 cột, đây là phần tiếp theo của C/NO
-                    currentGroup.cno.push(row[0].trim());
                   }
-                }
-              });
-
-              // Thêm nhóm cuối cùng nếu có
-              if (currentGroup.meas || currentGroup.cno.length > 0) {
-                processedData.push({
-                  meas: currentGroup.meas,
-                  cno: currentGroup.cno.join(""),
-                  ctns: currentGroup.ctns,
                 });
+
+                // Cập nhật số thứ tự
+                updateRowNumbers(tbody);
               }
-
-              // Xóa các dòng hiện tại
-              let nextRow = currentRow.nextElementSibling;
-              while (nextRow) {
-                const temp = nextRow.nextElementSibling;
-                tbody.removeChild(nextRow);
-                nextRow = temp;
-              }
-
-              // Điền dữ liệu đã xử lý vào bảng
-              processedData.forEach((data, index) => {
-                const targetRow = index === 0 ? currentRow : addRow(side);
-                const inputs = targetRow.querySelectorAll("input");
-
-                // Điền dữ liệu vào từng ô và loại bỏ dấu ngoặc kép
-                if (data.meas)
-                  inputs[0].value = data.meas.replace(/^"|"$/g, "").trim();
-                if (data.cno)
-                  inputs[1].value = data.cno
-                    .replace(/^"|"$/g, "")
-                    .replace(/\s+/g, "")
-                    .trim();
-                if (data.ctns)
-                  inputs[2].value = data.ctns.replace(/^"|"$/g, "").trim();
-              });
-
-              // Cập nhật số thứ tự
-              updateRowNumbers(tbody);
             } catch (err) {
               console.error("Paste error:", err);
+              alert("Có lỗi xảy ra khi paste dữ liệu");
             }
           });
 
@@ -456,7 +489,14 @@
           row.appendChild(cell);
         });
 
-        tbody.appendChild(row);
+        // Insert after selected row or append to end
+        if (selectedRow) {
+          selectedRow.insertAdjacentElement("afterend", row);
+          updateRowNumbers(tbody);
+        } else {
+          tbody.appendChild(row);
+        }
+
         return row;
       }
 
@@ -488,19 +528,37 @@
           rows.forEach((row, index) => {
             const columns = row.split("\t");
 
-            // Nếu dòng có đủ 3 cột hoặc là dòng đầu tiên
-            if (columns.length >= 3 || !currentRow) {
-              addRow(side);
-              currentRow = tbody.lastElementChild;
-              currentInputs = currentRow.querySelectorAll("input");
+            // Nếu dòng có đủ cột hoặc là dòng đầu tiên
+            if (columns.length >= 5 || !currentRow) {
+              if (side === "main") {
+                addRow(side);
+                currentRow = tbody.lastElementChild;
+                currentInputs = currentRow.querySelectorAll("input");
 
-              columns.forEach((value, colIndex) => {
-                if (colIndex < currentInputs.length) {
-                  // Loại bỏ dấu ngoặc kép nếu có
-                  let cleanValue = value.replace(/^"|"$/g, "").trim();
-                  currentInputs[colIndex].value = cleanValue;
-                }
-              });
+                if (columns[0])
+                  currentInputs[0].value = columns[0]
+                    .replace(/^"|"$/g, "")
+                    .trim(); // MEAS
+                if (columns[1])
+                  currentInputs[1].value = columns[1]
+                    .replace(/^"|"$/g, "")
+                    .trim(); // C/NO
+                if (columns[2])
+                  currentInputs[2].value = columns[2]
+                    .replace(/^"|"$/g, "")
+                    .trim(); // CTN
+                if (columns[4])
+                  currentInputs[3].value = columns[4]
+                    .replace(/^"|"$/g, "")
+                    .trim(); // SIZE
+              } else if (side === "continuity") {
+                const newRow = addContinuityRow();
+                const inputs = newRow.querySelectorAll("input");
+                if (columns[1])
+                  inputs[0].value = columns[1].replace(/^"|"$/g, "").trim(); // C/NO
+                if (columns[4])
+                  inputs[1].value = columns[4].replace(/^"|"$/g, "").trim(); // SIZE
+              }
             } else {
               // Nếu dòng không đủ cột, giả định đây là phần tiếp theo của C/NO
               if (currentInputs && currentInputs[1]) {
@@ -510,6 +568,9 @@
               }
             }
           });
+
+          // Cập nhật số thứ tự
+          updateRowNumbers(tbody);
         } catch (err) {
           console.error("Paste error:", err);
           alert(
@@ -572,17 +633,31 @@
 
       // Phân tích dữ liệu
       function analyzeData() {
-        const data = getTableData("main");
+        const tbody = document.getElementById("mainTableBody");
+        const data = [];
         let hasError = false;
-        let message = "";
-        const errors = [];
 
-        data.forEach((row) => {
-          if (row.cnoCount !== row.ctnsValue) {
-            hasError = true;
-            errors.push(
-              `Dòng ${row.rowIndex}: Số lượng trong C/NO (${row.cnoCount}) không khớp với CTNs (${row.ctnsValue})`
-            );
+        tbody.querySelectorAll("tr").forEach((row) => {
+          const inputs = row.querySelectorAll("input");
+          const size = inputs[3].value.trim(); // Size
+          const cno = inputs[1].value.trim(); // C/NO
+          const ctns = inputs[2].value.trim(); // CTNs
+
+          if (cno || ctns) {
+            const cnoCount = countNumbers(cno);
+            const ctnsValue = parseInt(ctns) || 0;
+            const status = cnoCount === ctnsValue ? "Khớp" : "Không khớp";
+
+            if (cnoCount !== ctnsValue) {
+              hasError = true;
+            }
+
+            data.push({
+              size: size,
+              cnoCount: cnoCount,
+              ctnsValue: ctnsValue,
+              status: status,
+            });
           }
         });
 
@@ -590,21 +665,70 @@
         const resultDiv = document.getElementById("result");
         resultDiv.style.display = "block";
 
-        if (hasError) {
-          resultDiv.className =
-            data.length === errors.length
-              ? "alert alert-danger mt-4"
-              : "alert alert-warning mt-4";
-          message = `<strong>Phát hiện lỗi:</strong><br>` + errors.join("<br>");
-        } else if (data.length === 0) {
+        if (data.length === 0) {
           resultDiv.className = "alert alert-warning mt-4";
-          message = "Không có dữ liệu để phân tích";
+          document.getElementById("analysisResult").innerHTML =
+            "Không có dữ liệu để phân tích";
         } else {
-          resultDiv.className = "alert alert-success mt-4";
-          message = `<strong>Kết quả kiểm tra:</strong><br>Tất cả ${data.length} dòng đều có số lượng C/NO khớp với CTNs`;
-        }
+          // Tạo bảng kết quả
+          let tableHtml = `
+            <div class="table-responsive">
+              <table class="table table-bordered">
+                <thead class="table-light">
+                  <tr>
+                    <th>Size</th>
+                    <th>C/NO</th>
+                    <th>CTNs</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+          `;
 
-        document.getElementById("analysisResult").innerHTML = message;
+          data.forEach((row) => {
+            const statusClass =
+              row.status === "Khớp" ? "text-success" : "text-danger";
+            tableHtml += `
+              <tr>
+                <td>${row.size}</td>
+                <td>${row.cnoCount}</td>
+                <td>${row.ctnsValue}</td>
+                <td class="${statusClass} fw-bold">${row.status}</td>
+              </tr>
+            `;
+          });
+
+          tableHtml += `
+                </tbody>
+              </table>
+            </div>
+          `;
+
+          // Thêm thông báo tổng quan
+          const totalRows = data.length;
+          const matchedRows = data.filter(
+            (row) => row.status === "Khớp"
+          ).length;
+          const summaryHtml = `
+            <div class="mb-3">
+              <strong>Tổng số dòng:</strong> ${totalRows}<br>
+              <strong>Số dòng khớp:</strong> ${matchedRows}<br>
+              <strong>Số dòng không khớp:</strong> ${totalRows - matchedRows}
+            </div>
+          `;
+
+          document.getElementById("analysisResult").innerHTML =
+            summaryHtml + tableHtml;
+
+          // Xác định màu thông báo
+          if (!hasError) {
+            resultDiv.className = "alert alert-success mt-4"; // Tất cả đúng
+          } else if (matchedRows === 0) {
+            resultDiv.className = "alert alert-danger mt-4"; // Tất cả sai
+          } else {
+            resultDiv.className = "alert alert-warning mt-4"; // Một số đúng, một số sai
+          }
+        }
       }
 
       // Kiểm tra tính liên tục
@@ -620,6 +744,7 @@
                 <div class="modal-content">
                   <div class="modal-header bg-primary text-white">
                     <h5 class="modal-title">Kiểm Tra Tính Liên Tục</h5>
+                    <small class="text-white-50 ms-2">(Press ESC to close)</small>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                   </div>
                   <div class="modal-body">
@@ -629,6 +754,7 @@
                           <tr>
                             <th style="width: 60px">STT</th>
                             <th>Dãy Số</th>
+                            <th>Size</th>
                           </tr>
                         </thead>
                         <tbody id="continuityTableBody">
@@ -636,14 +762,26 @@
                       </table>
                     </div>
                   </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-danger" onclick="clearContinuityTable()">
-                      <i class="fas fa-trash"></i> Xóa Dữ Liệu
-                    </button>
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
-                    <button type="button" class="btn btn-primary" onclick="analyzeContinuity()">
-                      <i class="fas fa-check"></i> Kiểm Tra
-                    </button>
+                  <div class="modal-footer" style="display: flex; justify-content: space-between; padding: 1rem;">
+                    <div class="btn-group" style="gap: 10px;">
+                      <button type="button" class="btn btn-add-row" onclick="addContinuityRow()">
+                        <i class="fas fa-plus"></i> Add
+                      </button>
+                      <button type="button" class="btn btn-danger" onclick="deleteSelectedContinuityRow()">
+                        <i class="fas fa-trash"></i> Delete
+                      </button>
+                      <button type="button" class="btn btn-paste" onclick="pasteFromClipboard('continuity')">
+                        <i class="fas fa-paste"></i> Paste
+                      </button>
+                    </div>
+                    <div class="btn-group" style="gap: 10px;">
+                      <button type="button" class="btn btn-danger" onclick="clearContinuityTable()">
+                        <i class="fas fa-trash"></i> Clear
+                      </button>
+                      <button type="button" class="btn btn-primary" onclick="analyzeContinuity()">
+                        <i class="fas fa-check"></i> Check
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -662,6 +800,9 @@
             // STT
             const sttCell = document.createElement("td");
             sttCell.textContent = i + 1;
+            sttCell.addEventListener("click", (e) =>
+              handleRowSelection(e, "continuityTableBody")
+            );
             row.appendChild(sttCell);
 
             // Ô nhập dãy số
@@ -670,36 +811,21 @@
             input.type = "text";
             input.className = "form-control";
 
+            // Thêm sự kiện click cho cả cell và input
+            inputCell.addEventListener("click", (e) =>
+              handleRowSelection(e, "continuityTableBody")
+            );
+            input.addEventListener("click", (e) => {
+              e.stopPropagation(); // Ngăn sự kiện click lan ra cell
+              handleRowSelection(e, "continuityTableBody");
+            });
+
             // Thêm sự kiện paste cho input
             input.addEventListener("paste", async function (e) {
               e.preventDefault();
               try {
                 const text = e.clipboardData.getData("text");
-                const rows = text
-                  .split(/\r\n|\r|\n/)
-                  .filter((row) => row.trim()); // Lọc các dòng trống
-
-                // Lấy vị trí của ô hiện tại
-                const currentRow = this.closest("tr");
-                const tbody = currentRow.closest("tbody");
-                let targetRow = currentRow;
-
-                // Xử lý từng dòng dữ liệu
-                rows.forEach((row, index) => {
-                  if (index === 0) {
-                    // Dòng đầu tiên paste vào ô hiện tại
-                    this.value = row.trim();
-                  } else {
-                    // Các dòng tiếp theo paste vào các ô bên dưới
-                    targetRow = targetRow.nextElementSibling;
-                    if (targetRow) {
-                      const nextInput = targetRow.querySelector("input");
-                      if (nextInput) {
-                        nextInput.value = row.trim();
-                      }
-                    }
-                  }
-                });
+                await pasteFromClipboard("continuity");
               } catch (err) {
                 console.error("Paste error:", err);
                 alert("Có lỗi xảy ra khi paste dữ liệu");
@@ -708,6 +834,36 @@
 
             inputCell.appendChild(input);
             row.appendChild(inputCell);
+
+            // Thêm ô Size
+            const sizeCell = document.createElement("td");
+            const sizeInput = document.createElement("input");
+            sizeInput.type = "text";
+            sizeInput.className = "form-control";
+
+            // Thêm sự kiện click cho cả cell và input
+            sizeCell.addEventListener("click", (e) =>
+              handleRowSelection(e, "continuityTableBody")
+            );
+            sizeInput.addEventListener("click", (e) => {
+              e.stopPropagation(); // Ngăn sự kiện click lan ra cell
+              handleRowSelection(e, "continuityTableBody");
+            });
+
+            // Thêm sự kiện paste cho ô Size
+            sizeInput.addEventListener("paste", async function (e) {
+              e.preventDefault();
+              try {
+                const text = e.clipboardData.getData("text");
+                await pasteFromClipboard("continuity");
+              } catch (err) {
+                console.error("Paste error:", err);
+                alert("Có lỗi xảy ra khi paste dữ liệu");
+              }
+            });
+
+            sizeCell.appendChild(sizeInput);
+            row.appendChild(sizeCell);
 
             continuityBody.appendChild(row);
           }
@@ -730,7 +886,7 @@
 
       // Hàm phân tích tính liên tục
       function analyzeContinuity() {
-        const mainData = getTableData("main");
+        const mainData = [];
         const continuityData = [];
         let hasError = false;
         let messages = [];
@@ -738,78 +894,107 @@
         let duplicateMessages = [];
         let totalRows = 0;
         let errorRows = 0;
+        let sizeMismatchMessages = [];
+
+        // Thu thập dữ liệu từ bảng chính
+        document.querySelectorAll("#mainTableBody tr").forEach((row, index) => {
+          const inputs = row.querySelectorAll("input");
+          const cno = inputs[1].value.trim();
+          const size = inputs[3].value.trim();
+          if (cno || size) {
+            mainData.push({
+              rowIndex: index + 1,
+              numbers: cno,
+              size: size,
+            });
+          }
+        });
 
         // Thu thập dữ liệu từ bảng kiểm tra tính liên tục
         document
           .querySelectorAll("#continuityTableBody tr")
           .forEach((row, index) => {
-            const input = row.querySelector("input");
-            if (input && input.value.trim()) {
+            const inputs = row.querySelectorAll("input");
+            const numbers = inputs[0].value.trim();
+            const size = inputs[1].value.trim();
+            if (numbers || size) {
               continuityData.push({
                 rowIndex: index + 1,
-                numbers: input.value.trim(),
+                numbers: numbers,
+                size: size,
               });
             }
           });
 
-        // Kiểm tra số trùng trong từng dòng và giữa hai dãy
+        // Kiểm tra từng dòng
         mainData.forEach((mainRow, index) => {
           const continuityRow = continuityData[index];
           if (continuityRow) {
             totalRows++;
             let hasRowError = false;
-            const seq1 = parseNumberSequence(mainRow.cno);
-            const seq2 = parseNumberSequence(continuityRow.numbers);
 
-            // Kiểm tra số trùng trong dãy số thứ nhất
-            const duplicates1 = findDuplicates(seq1);
-            if (duplicates1.length > 0) {
-              hasDuplicateError = true;
-              hasRowError = true;
-              duplicateMessages.push(
-                `Dòng ${
-                  mainRow.rowIndex
-                } - Dãy số thứ nhất có số trùng: ${duplicates1.join(", ")}`
+            // Kiểm tra khớp Size
+            if (mainRow.size !== continuityRow.size) {
+              sizeMismatchMessages.push(
+                `Dòng ${mainRow.rowIndex}: Phát hiện size ${mainRow.size} không khớp với size ${continuityRow.size}`
               );
-            }
-
-            // Kiểm tra số trùng trong dãy số thứ hai
-            const duplicates2 = findDuplicates(seq2);
-            if (duplicates2.length > 0) {
-              hasDuplicateError = true;
               hasRowError = true;
-              duplicateMessages.push(
-                `Dòng ${
-                  mainRow.rowIndex
-                } - Dãy số thứ hai có số trùng: ${duplicates2.join(", ")}`
-              );
-            }
+              errorRows++;
+            } else {
+              // Chỉ kiểm tra tính liên tục nếu Size khớp
+              const seq1 = parseNumberSequence(mainRow.numbers);
+              const seq2 = parseNumberSequence(continuityRow.numbers);
 
-            // Kiểm tra số trùng giữa hai dãy
-            const duplicatesBetween = findDuplicatesBetweenArrays(seq1, seq2);
-            if (duplicatesBetween.length > 0) {
-              hasDuplicateError = true;
-              hasRowError = true;
-              duplicateMessages.push(
-                `Dòng ${
-                  mainRow.rowIndex
-                } - Số trùng giữa hai dãy: ${duplicatesBetween.join(", ")}`
-              );
-            }
-
-            // Kiểm tra tính liên tục nếu không có số trùng
-            if (
-              duplicates1.length === 0 &&
-              duplicates2.length === 0 &&
-              duplicatesBetween.length === 0
-            ) {
-              const result = checkSequenceContinuity(seq1, seq2);
-              if (!result.continuous) {
-                hasError = true;
+              // Kiểm tra số trùng trong dãy số thứ nhất
+              const duplicates1 = findDuplicates(seq1);
+              if (duplicates1.length > 0) {
+                hasDuplicateError = true;
                 hasRowError = true;
-                messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
-              } else {
-                messages.push(`Dòng ${mainRow.rowIndex}: ${result.message}`);
+                duplicateMessages.push(
+                  `Size ${
+                    mainRow.size
+                  } - Dãy số thứ nhất có số trùng: ${duplicates1.join(", ")}`
+                );
+              }
+
+              // Kiểm tra số trùng trong dãy số thứ hai
+              const duplicates2 = findDuplicates(seq2);
+              if (duplicates2.length > 0) {
+                hasDuplicateError = true;
+                hasRowError = true;
+                duplicateMessages.push(
+                  `Size ${
+                    mainRow.size
+                  } - Dãy số thứ hai có số trùng: ${duplicates2.join(", ")}`
+                );
+              }
+
+              // Kiểm tra số trùng giữa hai dãy
+              const duplicatesBetween = findDuplicatesBetweenArrays(seq1, seq2);
+              if (duplicatesBetween.length > 0) {
+                hasDuplicateError = true;
+                hasRowError = true;
+                duplicateMessages.push(
+                  `Size ${
+                    mainRow.size
+                  } - Số trùng giữa hai dãy: ${duplicatesBetween.join(", ")}`
+                );
+              }
+
+              // Kiểm tra tính liên tục nếu không có số trùng
+              if (
+                duplicates1.length === 0 &&
+                duplicates2.length === 0 &&
+                duplicatesBetween.length === 0
+              ) {
+                const result = checkSequenceContinuity(seq1, seq2);
+                if (!result.continuous) {
+                  hasError = true;
+                  hasRowError = true;
+                  messages.push(`Size ${mainRow.size}: ${result.message}`);
+                } else {
+                  messages.push(`Size ${mainRow.size}: ${result.message}`);
+                }
               }
             }
 
@@ -829,6 +1014,14 @@
             "Không có dữ liệu để phân tích";
         } else {
           let finalMessage = "";
+
+          // Hiển thị thông báo về Size không khớp nếu có
+          if (sizeMismatchMessages.length > 0) {
+            finalMessage +=
+              `<strong>Size không khớp:</strong><br>` +
+              sizeMismatchMessages.join("<br>") +
+              "<br><br>";
+          }
 
           // Hiển thị thông báo về số trùng nếu có
           if (hasDuplicateError) {
@@ -939,6 +1132,299 @@
       function findDuplicatesBetweenArrays(arr1, arr2) {
         const set1 = new Set(arr1);
         return arr2.filter((num) => set1.has(num)).sort((a, b) => a - b);
+      }
+
+      // Thêm dòng mới vào bảng kiểm tra tính liên tục
+      function addContinuityRow() {
+        const tbody = document.getElementById("continuityTableBody");
+        const selectedRow = tbody.querySelector(".selected-row");
+        const rowCount = tbody.children.length;
+        const row = document.createElement("tr");
+
+        // STT
+        const sttCell = document.createElement("td");
+        sttCell.textContent = rowCount + 1;
+        row.appendChild(sttCell);
+
+        // Sequence input
+        const inputCell = document.createElement("td");
+        const input = document.createElement("input");
+        input.type = "text";
+        input.className = "form-control";
+
+        // Add click event for row selection
+        inputCell.addEventListener("click", (e) =>
+          handleRowSelection(e, "continuityTableBody")
+        );
+        input.addEventListener("click", (e) => {
+          e.stopPropagation(); // Ngăn sự kiện click lan ra cell
+          handleRowSelection(e, "continuityTableBody");
+        });
+
+        // Add paste event handler
+        input.addEventListener("paste", async function (e) {
+          e.preventDefault();
+          try {
+            const text = e.clipboardData.getData("text");
+            await pasteFromClipboard("continuity");
+          } catch (err) {
+            console.error("Paste error:", err);
+            alert("Có lỗi xảy ra khi paste dữ liệu");
+          }
+        });
+
+        inputCell.appendChild(input);
+        row.appendChild(inputCell);
+
+        // Size input
+        const sizeCell = document.createElement("td");
+        const sizeInput = document.createElement("input");
+        sizeInput.type = "text";
+        sizeInput.className = "form-control";
+
+        // Thêm sự kiện click cho cả cell và input
+        sizeCell.addEventListener("click", (e) =>
+          handleRowSelection(e, "continuityTableBody")
+        );
+        sizeInput.addEventListener("click", (e) => {
+          e.stopPropagation(); // Ngăn sự kiện click lan ra cell
+          handleRowSelection(e, "continuityTableBody");
+        });
+
+        // Thêm sự kiện paste cho ô Size
+        sizeInput.addEventListener("paste", async function (e) {
+          e.preventDefault();
+          try {
+            const text = e.clipboardData.getData("text");
+            await pasteFromClipboard("continuity");
+          } catch (err) {
+            console.error("Paste error:", err);
+            alert("Có lỗi xảy ra khi paste dữ liệu");
+          }
+        });
+
+        sizeCell.appendChild(sizeInput);
+        row.appendChild(sizeCell);
+
+        // Insert after selected row or append to end
+        if (selectedRow) {
+          selectedRow.insertAdjacentElement("afterend", row);
+          updateRowNumbers(tbody);
+        } else {
+          tbody.appendChild(row);
+        }
+
+        return row;
+      }
+
+      // Hàm xóa dòng được chọn trong bảng kiểm tra tính liên tục
+      function deleteSelectedContinuityRow() {
+        deleteSelectedRows("continuityTableBody");
+      }
+
+      // Hàm xóa dòng được chọn
+      function deleteSelectedRow() {
+        deleteSelectedRows("mainTableBody");
+      }
+
+      // Add new function for multi-select functionality
+      function handleRowSelection(event, tableId) {
+        const tbody = document.getElementById(tableId);
+        const clickedRow = event.target.closest("tr");
+
+        if (!clickedRow) return;
+
+        if (event.shiftKey) {
+          // Shift + Click: Select range
+          const rows = Array.from(tbody.querySelectorAll("tr"));
+          const lastSelectedRow = tbody.querySelector(".selected-row");
+
+          if (lastSelectedRow) {
+            const start = rows.indexOf(lastSelectedRow);
+            const end = rows.indexOf(clickedRow);
+            const [min, max] = [start, end].sort((a, b) => a - b);
+
+            // Xóa selection cũ
+            rows.forEach((row) => {
+              row.classList.remove("selected-row");
+              row.querySelectorAll("input").forEach((input) => {
+                input.classList.remove("selected-row");
+              });
+            });
+
+            // Thêm selection mới
+            rows.forEach((row, index) => {
+              if (index >= min && index <= max) {
+                row.classList.add("selected-row");
+                row.querySelectorAll("input").forEach((input) => {
+                  input.classList.add("selected-row");
+                });
+              }
+            });
+          } else {
+            clickedRow.classList.add("selected-row");
+            clickedRow.querySelectorAll("input").forEach((input) => {
+              input.classList.add("selected-row");
+            });
+          }
+        } else if (event.ctrlKey || event.metaKey) {
+          // Ctrl/Cmd + Click: Toggle selection
+          clickedRow.classList.toggle("selected-row");
+          clickedRow.querySelectorAll("input").forEach((input) => {
+            input.classList.toggle("selected-row");
+          });
+        } else {
+          // Normal click: Single selection
+          tbody.querySelectorAll("tr").forEach((row) => {
+            row.classList.remove("selected-row");
+            row.querySelectorAll("input").forEach((input) => {
+              input.classList.remove("selected-row");
+            });
+          });
+          clickedRow.classList.add("selected-row");
+          clickedRow.querySelectorAll("input").forEach((input) => {
+            input.classList.add("selected-row");
+          });
+        }
+      }
+
+      // Update addRow function to support insertion after selected row
+      function addRow(side) {
+        const tbody = document.getElementById(side + "TableBody");
+        const selectedRow = tbody.querySelector(".selected-row");
+        const rowCount = tbody.children.length;
+        const row = document.createElement("tr");
+
+        // STT
+        const sttCell = document.createElement("td");
+        sttCell.textContent = rowCount + 1;
+        row.appendChild(sttCell);
+
+        // Input cells
+        ["meas", "cno", "ctns", "size"].forEach((_, index) => {
+          const cell = document.createElement("td");
+          const input = document.createElement("input");
+          input.type = "text";
+          input.className = "form-control";
+
+          // Add click event for row selection
+          cell.addEventListener("click", (e) =>
+            handleRowSelection(e, side + "TableBody")
+          );
+
+          // Add paste event handler
+          input.addEventListener("paste", async function (e) {
+            e.preventDefault();
+            try {
+              const text = e.clipboardData.getData("text");
+
+              if (side === "continuity") {
+                await pasteFromClipboard("continuity");
+              } else {
+                const rows = text
+                  .split(/\r\n|\r|\n/)
+                  .filter((row) => row.trim());
+
+                // Lấy vị trí của ô hiện tại
+                const currentRow = this.closest("tr");
+                const tbody = currentRow.closest("tbody");
+
+                // Xóa nội dung cũ của bảng
+                tbody.innerHTML = "";
+
+                // Xử lý từng dòng dữ liệu
+                rows.forEach((row, index) => {
+                  const columns = row.split("\t");
+
+                  if (columns.length >= 5) {
+                    if (side === "main") {
+                      const newRow = addRow(side);
+                      const inputs = newRow.querySelectorAll("input");
+                      if (columns[0])
+                        inputs[0].value = columns[0]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // MEAS
+                      if (columns[1])
+                        inputs[1].value = columns[1]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // C/NO
+                      if (columns[2])
+                        inputs[2].value = columns[2]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // CTN
+                      if (columns[4])
+                        inputs[3].value = columns[4]
+                          .replace(/^"|"$/g, "")
+                          .trim(); // SIZE
+                    }
+                  }
+                });
+
+                // Cập nhật số thứ tự
+                updateRowNumbers(tbody);
+              }
+            } catch (err) {
+              console.error("Paste error:", err);
+              alert("Có lỗi xảy ra khi paste dữ liệu");
+            }
+          });
+
+          cell.appendChild(input);
+          row.appendChild(cell);
+        });
+
+        // Insert after selected row or append to end
+        if (selectedRow) {
+          selectedRow.insertAdjacentElement("afterend", row);
+          updateRowNumbers(tbody);
+        } else {
+          tbody.appendChild(row);
+        }
+
+        return row;
+      }
+
+      // Helper function for main table paste
+      function handleMainTablePaste(rows, input) {
+        const currentRow = input.closest("tr");
+        const tbody = currentRow.closest("tbody");
+        let targetRow = currentRow;
+
+        rows.forEach((row, index) => {
+          const columns = row.split("\t");
+
+          if (index === 0) {
+            // Fill current row
+            const inputs = targetRow.querySelectorAll("input");
+            if (columns[0]) inputs[0].value = columns[0].trim();
+            if (columns[1]) inputs[1].value = columns[1].trim();
+            if (columns[2]) inputs[2].value = columns[2].trim();
+            if (columns[4]) inputs[3].value = columns[4].trim();
+          } else {
+            // Create new row for additional data
+            const newRow = addRow("main");
+            const inputs = newRow.querySelectorAll("input");
+            if (columns[0]) inputs[0].value = columns[0].trim();
+            if (columns[1]) inputs[1].value = columns[1].trim();
+            if (columns[2]) inputs[2].value = columns[2].trim();
+            if (columns[4]) inputs[3].value = columns[4].trim();
+          }
+        });
+
+        updateRowNumbers(tbody);
+      }
+
+      // Update delete functions to handle multiple selections
+      function deleteSelectedRows(tableId) {
+        const tbody = document.getElementById(tableId);
+        const selectedRows = tbody.querySelectorAll(".selected-row");
+
+        if (selectedRows.length > 0) {
+          selectedRows.forEach((row) => row.remove());
+          updateRowNumbers(tbody);
+        } else {
+          alert("Vui lòng chọn một hoặc nhiều dòng để xóa");
+        }
       }
 
       // Khởi tạo bảng khi trang được tải
