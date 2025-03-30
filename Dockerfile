@@ -1,8 +1,8 @@
 FROM python:3.9-slim
 
-# Cài đặt các dependencies hệ thống
+# Install system dependencies
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     poppler-utils \
     tesseract-ocr \
     tesseract-ocr-eng \
@@ -11,38 +11,40 @@ RUN apt-get update && \
     pkg-config \
     && rm -rf /var/lib/apt/lists/*
 
-# Kiểm tra cài đặt Poppler và Tesseract
-RUN pdftoppm -v && \
-    tesseract --version
+# Verify installations
+RUN which pdftoppm && pdftoppm -v
+RUN which tesseract && tesseract --version
 
-# Tạo và set working directory
+# Set working directory
 WORKDIR /app
 
-# Copy requirements và cài đặt Python packages
+# Copy requirements and install Python packages
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy toàn bộ code
+# Copy all code
 COPY . .
 
-# Tạo các thư mục cần thiết và set quyền
-RUN mkdir -p temp archive temp/debug && \
-    chmod -R 777 temp archive temp/debug && \
-    chmod -R 777 /app
+# Create necessary directories with proper permissions
+RUN mkdir -p /app/temp /app/archive /app/temp/debug && \
+    chmod -R 777 /app/temp && \
+    chmod -R 777 /app/archive && \
+    chmod -R 777 /app/temp/debug
 
 # Set environment variables
 ENV PYTHONPATH=/app
 ENV LANG=C.UTF-8
 ENV LC_ALL=C.UTF-8
 ENV TESSDATA_PREFIX=/usr/share/tesseract-ocr/4.00/tessdata
-ENV PATH="/usr/bin:${PATH}"
+ENV PATH="/usr/local/bin:/usr/bin:${PATH}"
 
-# Kiểm tra lại quyền và thư mục
+# Verify final setup
 RUN ls -la /app && \
     ls -la /app/temp && \
     ls -la /app/archive && \
+    ls -la /app/temp/debug && \
     tesseract --version && \
     pdftoppm -v
 
-# Start command
+# Start command with increased timeout
 CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "300", "wsgi:application"] 
