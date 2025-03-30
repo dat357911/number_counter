@@ -1,74 +1,93 @@
 import os
 import sys
-import logging
 import subprocess
+import logging
+from datetime import datetime
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import LoginManager
+from flask_migrate import Migrate
+from apscheduler.schedulers.background import BackgroundScheduler
+from apscheduler.triggers.cron import CronTrigger
+from pytz import timezone
+import pytz
 
-# Cấu hình logging
+# Configure logging
 logging.basicConfig(
     level=logging.DEBUG,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.StreamHandler(sys.stdout)
-    ]
+    format='%(asctime)s - %(levelname)s - %(message)s'
 )
-
-# Add your project directory to Python path 
-project_dir = os.path.dirname(os.path.abspath(__file__))
-if project_dir not in sys.path:
-    sys.path.append(project_dir)
-    logging.info(f"Added project directory to Python path: {project_dir}")
-
-# Set environment variables
-os.environ['LANG'] = 'C.UTF-8'
-os.environ['LC_ALL'] = 'C.UTF-8'
+logger = logging.getLogger(__name__)
 
 def check_dependencies():
-    """Kiểm tra các dependencies"""
+    """Check if required dependencies are installed"""
     try:
-        # Kiểm tra Tesseract
-        tesseract_version = subprocess.check_output(['tesseract', '--version'], stderr=subprocess.STDOUT)
-        logging.info(f"Tesseract version: {tesseract_version.decode()}")
+        # Check Tesseract
+        tesseract_path = subprocess.check_output(['which', 'tesseract']).decode().strip()
+        tesseract_version = subprocess.check_output(['tesseract', '--version']).decode().strip()
+        logger.info(f"Tesseract found at: {tesseract_path}")
+        logger.info(f"Tesseract version: {tesseract_version}")
         
-        # Kiểm tra Poppler
-        poppler_version = subprocess.check_output(['pdftoppm', '-v'], stderr=subprocess.STDOUT)
-        logging.info(f"Poppler version: {poppler_version.decode()}")
+        # Check Poppler
+        pdftoppm_path = subprocess.check_output(['which', 'pdftoppm']).decode().strip()
+        pdftoppm_version = subprocess.check_output(['pdftoppm', '-v']).decode().strip()
+        logger.info(f"Poppler found at: {pdftoppm_path}")
+        logger.info(f"Poppler version: {pdftoppm_version}")
         
         return True
+    except subprocess.CalledProcessError as e:
+        logger.error(f"Error checking dependencies: {str(e)}")
+        logger.error("Required dependencies are not installed properly!")
+        return False
     except Exception as e:
-        logging.error(f"Error checking dependencies: {str(e)}")
+        logger.error(f"Unexpected error checking dependencies: {str(e)}")
         return False
 
 def ensure_dir(directory):
-    """Đảm bảo thư mục tồn tại và có quyền truy cập"""
-    if not os.path.exists(directory):
-        try:
-            os.makedirs(directory, exist_ok=True)
-            os.chmod(directory, 0o777)
-            logging.info(f"Created directory with permissions: {directory}")
-        except Exception as e:
-            logging.error(f"Error creating directory {directory}: {str(e)}")
-            raise
+    """Ensure directory exists with proper permissions"""
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+            logger.info(f"Created directory: {directory}")
+        else:
+            logger.info(f"Directory exists: {directory}")
+        
+        # Set permissions to 777
+        os.chmod(directory, 0o777)
+        
+        # Verify permissions
+        mode = os.stat(directory).st_mode
+        logger.info(f"Directory permissions for {directory}: {oct(mode & 0o777)}")
+        
+        return True
+    except Exception as e:
+        logger.error(f"Error ensuring directory {directory}: {str(e)}")
+        return False
 
-# Create required directories with absolute paths
-base_dir = os.environ.get('RENDER_APP_DIR', project_dir)
+# Add project directory to Python path
+project_dir = os.path.dirname(os.path.abspath(__file__))
+if project_dir not in sys.path:
+    sys.path.append(project_dir)
+    logger.info(f"Added project directory to Python path: {project_dir}")
+
+# Create necessary directories
+base_dir = os.getenv('RENDER_APP_DIR', project_dir)
 temp_dir = os.path.join(base_dir, 'temp')
 archive_dir = os.path.join(base_dir, 'archive')
 debug_dir = os.path.join(temp_dir, 'debug')
 
-# Create directories if they don't exist
+# Create directories with proper permissions
 for directory in [temp_dir, archive_dir, debug_dir]:
     ensure_dir(directory)
-    logging.info(f"Directory exists and accessible: {directory}")
-    # Log directory permissions
-    try:
-        perms = oct(os.stat(directory).st_mode)[-3:]
-        logging.info(f"Permissions for {directory}: {perms}")
-    except Exception as e:
-        logging.error(f"Error checking permissions for {directory}: {str(e)}")
 
-# Kiểm tra dependencies
+# Check dependencies before running the application
 if not check_dependencies():
-    logging.error("Required dependencies are not installed properly!")
+    logger.error("Failed to verify required dependencies. Application may not function correctly.")
+    sys.exit(1)
+
+# Set environment variables
+os.environ['LANG'] = 'C.UTF-8'
+os.environ['LC_ALL'] = 'C.UTF-8'
 
 # Add Poppler and Tesseract to PATH based on environment
 if os.name == 'nt':  # Windows
@@ -76,13 +95,13 @@ if os.name == 'nt':  # Windows
     tesseract_path = r'C:\Program Files\Tesseract-OCR'
     if os.path.exists(poppler_path):
         os.environ['PATH'] = poppler_path + os.pathsep + os.environ.get('PATH', '')
-        logging.info(f"Added Poppler to PATH: {poppler_path}")
+        logger.info(f"Added Poppler to PATH: {poppler_path}")
     if os.path.exists(tesseract_path):
         os.environ['PATH'] = tesseract_path + os.pathsep + os.environ.get('PATH', '')
-        logging.info(f"Added Tesseract to PATH: {tesseract_path}")
+        logger.info(f"Added Tesseract to PATH: {tesseract_path}")
 else:  # Linux/Unix
     os.environ['PATH'] = '/usr/bin:/usr/local/bin:' + os.environ.get('PATH', '')
-    logging.info("Added system binary paths to PATH")
+    logger.info("Added system binary paths to PATH")
 
 from app import app as application
 

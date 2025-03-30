@@ -25,7 +25,8 @@ logging.basicConfig(
     level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
-        logging.StreamHandler(sys.stdout)
+        logging.StreamHandler(sys.stdout),
+        logging.FileHandler('app.log')
     ]
 )
 
@@ -256,16 +257,25 @@ app.config['ARCHIVE_FOLDER'] = os.path.abspath(os.path.join(os.path.dirname(__fi
 
 def ensure_dir(directory):
     """Đảm bảo thư mục tồn tại và có quyền truy cập"""
-    if not os.path.exists(directory):
-        try:
+    try:
+        logging.info(f"Checking directory: {directory}")
+        if not os.path.exists(directory):
+            logging.info(f"Directory does not exist, creating: {directory}")
             os.makedirs(directory, exist_ok=True)
             logging.info(f"Created directory: {directory}")
-            # Thêm quyền ghi cho thư mục trên Windows
-            if platform.system() == 'Windows':
+            # Thêm quyền ghi cho thư mục
+            os.chmod(directory, 0o777)
+            logging.info(f"Set permissions 777 for directory: {directory}")
+        else:
+            logging.info(f"Directory already exists: {directory}")
+            current_mode = oct(os.stat(directory).st_mode)[-3:]
+            logging.info(f"Current directory permissions: {current_mode}")
+            if current_mode != '777':
                 os.chmod(directory, 0o777)
-        except Exception as e:
-            logging.error(f"Error creating directory {directory}: {str(e)}")
-            raise
+                logging.info(f"Updated permissions to 777 for directory: {directory}")
+    except Exception as e:
+        logging.error(f"Error creating/updating directory {directory}: {str(e)}")
+        raise
 
 # Đảm bảo các thư mục cần thiết tồn tại
 for folder in [app.config['UPLOAD_FOLDER'], app.config['ARCHIVE_FOLDER']]:
@@ -594,6 +604,12 @@ def upload_pdf():
         reset_progress()
         
         logging.info("Starting file upload process")
+        
+        # Log environment variables
+        logging.info(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
+        logging.info(f"Current working directory: {os.getcwd()}")
+        logging.info(f"Temp directory path: {app.config['UPLOAD_FOLDER']}")
+        logging.info(f"Archive directory path: {app.config['ARCHIVE_FOLDER']}")
         
         # Đảm bảo thư mục temp tồn tại
         ensure_dir(app.config['UPLOAD_FOLDER'])

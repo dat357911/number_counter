@@ -12,8 +12,8 @@ RUN apt-get update && \
     && rm -rf /var/lib/apt/lists/*
 
 # Create symbolic links to ensure binaries are in PATH
-RUN ln -s /usr/bin/tesseract /usr/local/bin/tesseract && \
-    ln -s /usr/bin/pdftoppm /usr/local/bin/pdftoppm
+RUN ln -sf /usr/bin/tesseract /usr/local/bin/tesseract && \
+    ln -sf /usr/bin/pdftoppm /usr/local/bin/pdftoppm
 
 # Set environment variables
 ENV PYTHONPATH=/opt/render/project/src
@@ -56,5 +56,5 @@ RUN echo "Final PATH: $PATH" && \
     echo "Final Poppler location: $(which pdftoppm)" && \
     echo "Final Poppler version: $(pdftoppm -v)"
 
-# Start command with increased timeout
-CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "300", "wsgi:application"] 
+# Start command with increased timeout and workers
+CMD ["gunicorn", "--bind", "0.0.0.0:10000", "--timeout", "600", "--workers", "4", "--threads", "2", "wsgi:application"] 
