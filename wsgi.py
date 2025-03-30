@@ -33,8 +33,9 @@ def ensure_dir(directory):
             raise
 
 # Create required directories with absolute paths
-temp_dir = os.path.join(project_dir, 'temp')
-archive_dir = os.path.join(project_dir, 'archive')
+base_dir = os.environ.get('RENDER_APP_DIR', project_dir)
+temp_dir = os.path.join(base_dir, 'temp')
+archive_dir = os.path.join(base_dir, 'archive')
 debug_dir = os.path.join(temp_dir, 'debug')
 
 # Create directories if they don't exist
@@ -42,7 +43,7 @@ for directory in [temp_dir, archive_dir, debug_dir]:
     ensure_dir(directory)
     logging.info(f"Directory exists and accessible: {directory}")
 
-# Add Poppler and Tesseract to PATH for Windows
+# Add Poppler and Tesseract to PATH based on environment
 if os.name == 'nt':  # Windows
     poppler_path = r'C:\Program Files\poppler-23.11.0\Library\bin'
     tesseract_path = r'C:\Program Files\Tesseract-OCR'
@@ -56,4 +57,7 @@ else:  # Linux/Unix
     os.environ['PATH'] = '/usr/bin:/usr/local/bin:' + os.environ.get('PATH', '')
     logging.info("Added system binary paths to PATH")
 
-from app import app as application 
+from app import app as application
+
+if __name__ == "__main__":
+    application.run() 
