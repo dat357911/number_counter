@@ -19,6 +19,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Configure timeouts and performance settings
+os.environ['GUNICORN_CMD_ARGS'] = '--timeout=600 --graceful-timeout=600 --keep-alive=600 --workers=4 --threads=4 --worker-class=gthread --max-requests=1000 --max-requests-jitter=50'
+os.environ['PYTHONUNBUFFERED'] = '1'
+os.environ['PYTHONHASHSEED'] = 'random'
+os.environ['PYTHONASYNCIODEBUG'] = '1'
+
 def check_dependencies():
     """Check if required dependencies are installed"""
     try:
