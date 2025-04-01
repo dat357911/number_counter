@@ -48,7 +48,7 @@ logging.info(f"Directory contents: {os.listdir()}")
 # Kiểm tra quyền truy cập thư mục
 temp_dir = os.path.join(os.getcwd(), 'temp')
 archive_dir = os.path.join(os.getcwd(), 'archive')
-debug_dir = os.path.join(os.getcwd(), 'debug')
+debug_dir = os.path.join(os.getcwd(), 'temp', 'debug')
 
 for directory in [temp_dir, archive_dir, debug_dir]:
     if os.path.exists(directory):
@@ -108,6 +108,11 @@ REQUIRED_FILES = [
 progress_data = {
     'total_pages': 0,
     'processed_pages': 0,
+    'current_page': 0,
+    'percentage': 0,
+    'status': 'Đang khởi tạo...',
+    'start_time': None,
+    'estimated_time': None,
     'complete': False
 }
 
@@ -647,10 +652,26 @@ def pdf_analysis():
 def progress():
     def generate():
         while not progress_data['complete']:
+            # Tính toán thời gian còn lại
+            if progress_data['start_time'] and progress_data['processed_pages'] > 0:
+                elapsed_time = (datetime.now() - progress_data['start_time']).total_seconds()
+                pages_remaining = progress_data['total_pages'] - progress_data['processed_pages']
+                if elapsed_time > 0:
+                    pages_per_second = progress_data['processed_pages'] / elapsed_time
+                    if pages_per_second > 0:
+                        estimated_seconds = pages_remaining / pages_per_second
+                        progress_data['estimated_time'] = f"{int(estimated_seconds)} giây"
+                    else:
+                        progress_data['estimated_time'] = "Đang tính..."
+                else:
+                    progress_data['estimated_time'] = "Đang tính..."
+            
             # Gửi cập nhật tiến trình mỗi 0.5 giây
             yield f"data: {json.dumps(progress_data)}\n\n"
             time.sleep(0.5)
+        
         # Gửi thông báo hoàn thành cuối cùng
+        progress_data['status'] = 'Hoàn thành!'
         yield f"data: {json.dumps(progress_data)}\n\n"
     
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
@@ -664,20 +685,30 @@ def process_page_batch(page_batch, temp_path, debug_path):
     batch_results = []
     for i, image in page_batch:
         try:
+            logging.info(f"Processing page {i+1}")
             # Lưu ảnh gốc để debug
             image.save(os.path.join(debug_path, f'page_{i+1}.png'))
+            logging.debug(f"Saved debug image for page {i+1}")
             
             # Trích xuất Order Number
+            logging.info(f"Extracting order number from page {i+1}")
             order_number = extract_order_number(image)
             
             if order_number:
+                logging.info(f"Found order number {order_number} on page {i+1}")
                 batch_results.append({
                     'original_index': i,
                     'order_number': order_number
                 })
+            else:
+                logging.warning(f"No order number found on page {i+1}")
             
             # Cập nhật tiến trình
             progress_data['processed_pages'] = i + 1
+            progress_data['current_page'] = i + 1
+            progress_data['total_pages'] = len(page_batch)
+            progress_data['percentage'] = int((i + 1) / len(page_batch) * 100)
+            progress_data['status'] = f"Đang xử lý trang {i+1}/{len(page_batch)}"
             
             # Giải phóng bộ nhớ
             del image
@@ -685,6 +716,7 @@ def process_page_batch(page_batch, temp_path, debug_path):
             
         except Exception as e:
             logging.error(f"Error processing page {i+1}: {str(e)}")
+            progress_data['status'] = f"Lỗi khi xử lý trang {i+1}: {str(e)}"
             continue
     
     return batch_results
@@ -1051,6 +1083,11 @@ def reset_progress():
     progress_data = {
         'total_pages': 0,
         'processed_pages': 0,
+        'current_page': 0,
+        'percentage': 0,
+        'status': 'Đang khởi tạo...',
+        'start_time': datetime.now(),
+        'estimated_time': None,
         'complete': False
     }
 
