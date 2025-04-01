@@ -32,6 +32,31 @@ logging.basicConfig(
     ]
 )
 
+# Kiểm tra biến môi trường
+logging.info("=== Checking Environment Variables ===")
+logging.info(f"PYTHONPATH: {os.getenv('PYTHONPATH')}")
+logging.info(f"POPPLER_PATH: {os.getenv('POPPLER_PATH')}")
+logging.info(f"TESSERACT_CMD: {os.getenv('TESSERACT_CMD')}")
+logging.info(f"FLASK_APP: {os.getenv('FLASK_APP')}")
+logging.info(f"FLASK_ENV: {os.getenv('FLASK_ENV')}")
+logging.info("=====================================")
+
+# Kiểm tra thư mục làm việc
+logging.info(f"Current working directory: {os.getcwd()}")
+logging.info(f"Directory contents: {os.listdir()}")
+
+# Kiểm tra quyền truy cập thư mục
+temp_dir = os.path.join(os.getcwd(), 'temp')
+archive_dir = os.path.join(os.getcwd(), 'archive')
+debug_dir = os.path.join(os.getcwd(), 'debug')
+
+for directory in [temp_dir, archive_dir, debug_dir]:
+    if os.path.exists(directory):
+        logging.info(f"Directory exists: {directory}")
+        logging.info(f"Directory permissions: {oct(os.stat(directory).st_mode)[-3:]}")
+    else:
+        logging.warning(f"Directory does not exist: {directory}")
+
 # Cấu hình đường dẫn
 if platform.system() == 'Windows':
     # Thử nhiều đường dẫn có thể cho Poppler
