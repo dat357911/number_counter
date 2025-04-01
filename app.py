@@ -21,6 +21,8 @@ from apscheduler.triggers.interval import IntervalTrigger
 import atexit
 from concurrent.futures import ThreadPoolExecutor
 import gc
+import hashlib
+from threading import Thread
 
 # Cấu hình logging
 logging.basicConfig(
@@ -48,7 +50,7 @@ logging.info(f"Directory contents: {os.listdir()}")
 # Kiểm tra quyền truy cập thư mục
 temp_dir = os.path.join(os.getcwd(), 'temp')
 archive_dir = os.path.join(os.getcwd(), 'archive')
-debug_dir = os.path.join(os.getcwd(), 'temp', 'debug')
+debug_dir = os.path.join(os.getcwd(), 'debug')
 
 for directory in [temp_dir, archive_dir, debug_dir]:
     if os.path.exists(directory):
@@ -151,7 +153,8 @@ def init_db():
                 status TEXT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 processed_by TEXT,
-                order_numbers TEXT
+                order_numbers TEXT,
+                file_hash TEXT
             )
         ''')
         
@@ -176,6 +179,11 @@ def init_db():
 def save_file_info(file_info):
     """Lưu thông tin file vào database"""
     try:
+        # Tạo file hash
+        with open(file_info['path'], 'rb') as f:
+            file_content = f.read()
+            file_hash = hashlib.md5(file_content).hexdigest()
+
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
         
@@ -184,8 +192,8 @@ def save_file_info(file_info):
             INSERT INTO files (
                 original_name, processed_name, file_path, 
                 file_size, total_pages, processed_pages,
-                status, processed_by, order_numbers
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                status, processed_by, order_numbers, file_hash
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ''', (
             file_info['original_name'],
             file_info['processed_name'],
@@ -195,24 +203,22 @@ def save_file_info(file_info):
             file_info.get('processed_pages', 0),
             file_info.get('status', 'completed'),
             session.get('username'),
-            ','.join(file_info.get('order_numbers', []))
+            ','.join(file_info.get('order_numbers', [])),
+            file_hash
         ))
         
         file_id = c.lastrowid
-        
-        # Lưu chi tiết order numbers
-        for order_number in file_info.get('order_numbers', []):
-            c.execute('''
-                INSERT INTO order_numbers (file_id, order_number)
-                VALUES (?, ?)
-            ''', (file_id, order_number))
-        
         conn.commit()
-        logging.info(f"File info saved to database: {file_info['original_name']}")
+        logging.info(f"File info saved successfully with ID: {file_id}")
+        return file_id
     except Exception as e:
         logging.error(f"Error saving file info to database: {str(e)}")
+        if conn:
+            conn.rollback()
+        raise
     finally:
-        conn.close()
+        if conn:
+            conn.close()
 
 def get_file_history(limit=100):
     """Lấy lịch sử xử lý file"""
@@ -666,12 +672,11 @@ def progress():
                 else:
                     progress_data['estimated_time'] = "Đang tính..."
             
-            # Gửi cập nhật tiến trình mỗi 0.5 giây
+            # Gửi cập nhật tiến trình
             yield f"data: {json.dumps(progress_data)}\n\n"
             time.sleep(0.5)
         
         # Gửi thông báo hoàn thành cuối cùng
-        progress_data['status'] = 'Hoàn thành!'
         yield f"data: {json.dumps(progress_data)}\n\n"
     
     return Response(stream_with_context(generate()), mimetype='text/event-stream')
@@ -1259,6 +1264,113 @@ def clear_history():
     finally:
         if 'conn' in locals():
             conn.close()
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    try:
+        if 'file' not in request.files:
+            return jsonify({'error': 'No file uploaded'}), 400
+
+        file = request.files['file']
+        if file.filename == '':
+            return jsonify({'error': 'No file selected'}), 400
+
+        # Reset progress data
+        reset_progress()
+        
+        # Log start of processing
+        logging.info("Starting file upload process")
+        logging.info(f"PYTHONPATH: {os.getenv('PYTHONPATH')}")
+        logging.info(f"Current working directory: {os.getcwd()}")
+        logging.info(f"Temp directory path: {temp_dir}")
+        logging.info(f"Archive directory path: {archive_dir}")
+        logging.info(f"Poppler path: {os.getenv('POPPLER_PATH')}")
+        logging.info(f"Tesseract path: {os.getenv('TESSERACT_CMD')}")
+
+        # Ensure directories exist with correct permissions
+        ensure_dir(temp_dir)
+        debug_dir = os.path.join(temp_dir, 'debug')
+        ensure_dir(debug_dir)
+        ensure_dir(archive_dir)
+
+        # Clean up debug folder
+        cleanup_directory(debug_dir)
+        logging.info("Cleaned up debug folder")
+
+        # Save uploaded file
+        filename = secure_filename(file.filename)
+        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+        temp_filename = f"{timestamp}_{filename}"
+        temp_path = os.path.join(temp_dir, temp_filename)
+        
+        logging.info(f"Processing file: {filename}")
+        logging.info(f"Full temp path: {temp_path}")
+        
+        file.save(temp_path)
+        os.chmod(temp_path, 0o664)
+        
+        logging.info(f"File saved to: {temp_path}")
+        logging.info(f"Saved file permissions: {oct(os.stat(temp_path).st_mode)[-3:]}")
+
+        # Process PDF in background
+        thread = Thread(target=process_pdf_background, args=(temp_path, filename))
+        thread.daemon = True
+        thread.start()
+
+        return jsonify({
+            'message': 'File uploaded and processing started',
+            'temp_path': temp_path
+        })
+
+    except Exception as e:
+        logging.error(f"Error in analyze route: {str(e)}")
+        return jsonify({'error': str(e)}), 500
+
+def process_pdf_background(temp_path, original_filename):
+    try:
+        # Update progress
+        progress_data['status'] = 'Đang bắt đầu xử lý...'
+        progress_data['start_time'] = datetime.now()
+
+        # Process PDF
+        result = process_pdf(temp_path)
+        
+        if result.get('success'):
+            # Move processed file to archive
+            archive_path = os.path.join(archive_dir, f"processed_{os.path.basename(temp_path)}")
+            shutil.move(temp_path, archive_path)
+            
+            # Save to database
+            file_info = {
+                'original_name': original_filename,
+                'processed_name': os.path.basename(archive_path),
+                'path': archive_path,
+                'total_pages': result.get('total_pages', 0),
+                'processed_pages': result.get('processed_pages', 0),
+                'order_numbers': result.get('order_numbers', [])
+            }
+            save_file_info(file_info)
+            
+            # Update progress
+            progress_data['complete'] = True
+            progress_data['status'] = 'Hoàn thành!'
+            
+            # Cleanup debug folder
+            cleanup_directory(os.path.join(temp_dir, 'debug'))
+            
+        else:
+            progress_data['status'] = 'Xử lý thất bại: ' + result.get('error', 'Unknown error')
+            
+    except Exception as e:
+        logging.error(f"Error in background processing: {str(e)}")
+        progress_data['status'] = f'Lỗi: {str(e)}'
+    finally:
+        # Ensure cleanup happens
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except Exception as e:
+            logging.error(f"Error cleaning up temp file: {str(e)}")
 
 if __name__ == '__main__':
     app.run(debug=True) 
