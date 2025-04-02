@@ -172,23 +172,246 @@
         margin-top: 15px;
       }
       .progress-container {
-        width: 100%;
-        max-width: 500px;
-        margin: 20px auto;
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        max-width: 800px;
+        margin: 40px auto;
+        transition: all 0.3s ease;
+      }
+      .progress-container h4 {
+        color: #1a237e;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 25px;
+        text-align: center;
+        position: relative;
+      }
+      .progress-container h4:after {
+        content: "";
+        display: block;
+        width: 60px;
+        height: 3px;
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        margin: 15px auto 0;
+        border-radius: 2px;
       }
       .progress {
-        height: 10px;
-        border-radius: 5px;
+        height: 8px;
+        border-radius: 4px;
         background-color: #e3f2fd;
+        margin: 25px 0;
+        overflow: hidden;
+        box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.1);
       }
       .progress-bar {
         background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
         transition: width 0.5s ease;
+        box-shadow: 0 2px 4px rgba(25, 118, 210, 0.3);
       }
-      .remaining-time {
+      .progress-stats {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 25px;
+        margin: 30px 0;
+      }
+      .stat-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 15px;
+        text-align: center;
+        transition: all 0.3s ease;
+        border: 1px solid #e3f2fd;
+        position: relative;
+        overflow: hidden;
+      }
+      .stat-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: #90caf9;
+      }
+      .stat-item::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .stat-item:hover::before {
+        opacity: 1;
+      }
+      .stat-label {
+        color: #546e7a;
+        font-size: 0.95rem;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        font-weight: 500;
+      }
+      .stat-value {
+        color: #1a237e;
+        font-size: 1.5rem;
+        font-weight: 600;
+        line-height: 1.2;
+        margin-top: 5px;
+      }
+      .processing-status {
+        text-align: center;
         color: #1976d2;
-        font-size: 0.9rem;
+        font-size: 1.1rem;
+        margin-top: 25px;
+        font-weight: 500;
+        padding: 15px;
+        background: #e3f2fd;
+        border-radius: 10px;
+        animation: pulse 2s infinite;
+      }
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
+        }
+        50% {
+          transform: scale(1.02);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+      .result-container {
+        background: white;
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+        margin-top: 30px;
+      }
+      .result-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        padding-bottom: 20px;
+        border-bottom: 2px solid #e3f2fd;
+      }
+      .result-title {
+        color: #1a237e;
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin: 0;
+        position: relative;
+      }
+      .result-title:after {
+        content: "";
+        display: block;
+        width: 40px;
+        height: 3px;
+        background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
         margin-top: 10px;
+        border-radius: 2px;
+      }
+      .order-columns {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 30px;
+      }
+      .order-column {
+        background: #f8f9fa;
+        padding: 25px;
+        border-radius: 15px;
+        border: 1px solid #e3f2fd;
+        transition: all 0.3s ease;
+      }
+      .order-column:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+        border-color: #90caf9;
+      }
+      .column-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        padding-bottom: 15px;
+        border-bottom: 1px solid #e3f2fd;
+      }
+      .column-title {
+        color: #1a237e;
+        font-size: 1.2rem;
+        font-weight: 600;
+        margin: 0;
+      }
+      .order-count {
+        background: #e3f2fd;
+        color: #1976d2;
+        padding: 5px 15px;
+        border-radius: 20px;
+        font-size: 0.9rem;
+        font-weight: 500;
+      }
+      .order-number {
+        display: inline-block;
+        padding: 8px 15px;
+        margin: 5px;
+        background: white;
+        border: 1px solid #e0e0e0;
+        border-radius: 8px;
+        font-family: "Consolas", monospace;
+        font-size: 1rem;
+        color: #2c3e50;
+        transition: all 0.2s ease;
+      }
+      .order-number:hover {
+        background: #e3f2fd;
+        border-color: #90caf9;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      }
+      .btn-download {
+        background: linear-gradient(135deg, #2e7d32 0%, #43a047 100%);
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 10px;
+        font-size: 1rem;
+        font-weight: 500;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+      }
+      .btn-download:hover {
+        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(67, 160, 71, 0.2);
+      }
+      .success-toast {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+        color: white;
+        padding: 15px 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        z-index: 1000;
+        animation: slideIn 0.3s ease;
+      }
+      @keyframes slideIn {
+        from {
+          transform: translateX(100%);
+          opacity: 0;
+        }
+        to {
+          transform: translateX(0);
+          opacity: 1;
+        }
       }
       .form-control {
         padding: 12px;
@@ -266,6 +489,29 @@
       }
       .result-section strong {
         color: #1976d2;
+      }
+      /* Thêm media queries cho responsive */
+      @media (max-width: 768px) {
+        .order-columns {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+
+        .result-container {
+          margin: 20px;
+          padding: 20px;
+        }
+
+        .result-header {
+          flex-direction: column;
+          gap: 15px;
+          align-items: flex-start;
+        }
+
+        .btn-download {
+          width: 100%;
+          justify-content: center;
+        }
       }
     </style>
   </head>
@@ -388,57 +634,70 @@
             </div>
           </form>
 
-          <div id="loading" class="loading">
-            <div class="spinner-border" role="status">
-              <span class="visually-hidden">Đang xử lý...</span>
-            </div>
-            <p>Đang xử lý file PDF...</p>
-            <div
-              class="progress-container"
-              id="progressContainer"
-              style="display: none"
-            >
+          <div id="loading" class="loading" style="display: none">
+            <div class="progress-container">
+              <h4>Đang xử lý PDF</h4>
+
               <div class="progress">
                 <div
                   class="progress-bar progress-bar-striped progress-bar-animated"
                   role="progressbar"
                   style="width: 0%"
-                  aria-valuenow="0"
-                  aria-valuemin="0"
-                  aria-valuemax="100"
                 ></div>
               </div>
-              <div class="text-center mt-3">
-                <p class="status-text mb-2 text-primary">Đang xử lý...</p>
-                <p class="progress-text mb-2">0/0 trang</p>
-                <p class="time-remaining mb-2">
-                  Thời gian còn lại: Đang tính...
-                </p>
-                <p class="percentage-text fw-bold">0%</p>
+
+              <div class="progress-stats">
+                <div class="stat-item">
+                  <div class="stat-label">Tổng số trang</div>
+                  <div class="stat-value" id="totalPages">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Đã xử lý</div>
+                  <div class="stat-value" id="processedPages">0</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Thời gian còn lại</div>
+                  <div class="stat-value" id="timeRemaining">Đang tính...</div>
+                </div>
+                <div class="stat-item">
+                  <div class="stat-label">Tiến độ</div>
+                  <div class="stat-value" id="progressPercentage">0%</div>
+                </div>
+              </div>
+
+              <div class="processing-status" id="processingStatus">
+                Đang khởi tạo...
               </div>
             </div>
           </div>
 
-          <div id="result" style="display: none">
-            <div class="order-info">
-              <p class="order-count">
-                Order Number: <span id="uniqueOrderCount">0</span>
-              </p>
+          <div id="result" class="result-container" style="display: none">
+            <div class="result-header">
+              <h4 class="result-title">Kết quả phân tích</h4>
+              <button
+                id="downloadBtn"
+                class="btn btn-download"
+                style="display: none"
+                onclick="downloadWithPath(event)"
+              >
+                <i class="fas fa-download"></i> Export PDF
+              </button>
             </div>
 
             <div class="order-columns">
               <div class="order-column">
-                <h4 class="column-title">
-                  Trước khi sắp xếp
-                  <span class="count" id="originalCount">0</span>
-                </h4>
+                <div class="column-header">
+                  <h5 class="column-title">Trước khi sắp xếp</h5>
+                  <span class="order-count" id="originalCount">0</span>
+                </div>
                 <div id="originalOrders"></div>
               </div>
+
               <div class="order-column">
-                <h4 class="column-title">
-                  Sau khi sắp xếp
-                  <span class="count" id="sortedCount">0</span>
-                </h4>
+                <div class="column-header">
+                  <h5 class="column-title">Sau khi sắp xếp</h5>
+                  <span class="order-count" id="sortedCount">0</span>
+                </div>
                 <div id="sortedOrders"></div>
               </div>
             </div>
@@ -447,7 +706,7 @@
       </div>
     </div>
 
-    <div id="successToast" class="toast" style="display: none"></div>
+    <div id="successToast" class="success-toast" style="display: none"></div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
@@ -457,41 +716,160 @@
       let processedPages = 0;
       let processedFile = null; // Store processed file info
       let uploadedFile = null; // Store uploaded file info
+      let eventSource = null;
 
-      function updateProgress() {
-        const eventSource = new EventSource("/progress");
-        eventSource.onmessage = function (event) {
-          const data = JSON.parse(event.data);
-          const progressBar = document.querySelector(".progress-bar");
-          const statusText = document.querySelector(".status-text");
-          const progressText = document.querySelector(".progress-text");
-          const timeRemaining = document.querySelector(".time-remaining");
-          const percentageText = document.querySelector(".percentage-text");
+      function startProgressMonitoring() {
+        // Đóng EventSource cũ nếu có
+        if (eventSource) {
+          eventSource.close();
+        }
+
+        // Hiển thị loading container
+        const loadingElement = document.getElementById("loading");
+        if (loadingElement) {
+          loadingElement.style.display = "block";
+        }
+
+        // Reset progress
+        resetProgress();
+
+        try {
+          // Khởi tạo EventSource mới
+          eventSource = new EventSource("/progress");
+          console.log("EventSource created");
+
+          eventSource.onopen = function () {
+            console.log("EventSource connection opened");
+            const status = document.getElementById("processingStatus");
+            if (status) {
+              status.textContent = "Đã kết nối, bắt đầu xử lý...";
+            }
+          };
+
+          eventSource.onmessage = function (event) {
+            try {
+              const data = JSON.parse(event.data);
+              console.log("Progress data received:", data);
+
+              // Cập nhật UI với dữ liệu mới
+              updateProgress(data);
+
+              if (data.complete) {
+                console.log("Processing completed, closing EventSource");
+                eventSource.close();
+                eventSource = null;
+              }
+            } catch (error) {
+              console.error("Error processing progress update:", error);
+            }
+          };
+
+          eventSource.onerror = function (error) {
+            console.error("EventSource error:", error);
+            const status = document.getElementById("processingStatus");
+            if (status) {
+              status.textContent = "Lỗi kết nối, đang thử kết nối lại...";
+            }
+          };
+        } catch (error) {
+          console.error("Error creating EventSource:", error);
+          const status = document.getElementById("processingStatus");
+          if (status) {
+            status.textContent = "Không thể kết nối đến server";
+          }
+        }
+      }
+
+      function resetProgress() {
+        const elements = {
+          progressBar: document.querySelector(".progress-bar"),
+          totalPages: document.getElementById("totalPages"),
+          processedPages: document.getElementById("processedPages"),
+          timeRemaining: document.getElementById("timeRemaining"),
+          progressPercentage: document.getElementById("progressPercentage"),
+          processingStatus: document.getElementById("processingStatus"),
+        };
+
+        if (elements.progressBar) {
+          elements.progressBar.style.width = "0%";
+          elements.progressBar.setAttribute("aria-valuenow", 0);
+        }
+        if (elements.totalPages) elements.totalPages.textContent = "0";
+        if (elements.processedPages) elements.processedPages.textContent = "0";
+        if (elements.timeRemaining)
+          elements.timeRemaining.textContent = "Đang tính...";
+        if (elements.progressPercentage)
+          elements.progressPercentage.textContent = "0%";
+        if (elements.processingStatus)
+          elements.processingStatus.textContent = "Đang khởi tạo...";
+      }
+
+      function updateProgress(data) {
+        try {
+          console.log("Updating progress with data:", data);
+
+          const elements = {
+            progressBar: document.querySelector(".progress-bar"),
+            totalPages: document.getElementById("totalPages"),
+            processedPages: document.getElementById("processedPages"),
+            timeRemaining: document.getElementById("timeRemaining"),
+            progressPercentage: document.getElementById("progressPercentage"),
+            processingStatus: document.getElementById("processingStatus"),
+          };
 
           // Cập nhật progress bar
-          progressBar.style.width = data.percentage + "%";
-          progressBar.setAttribute("aria-valuenow", data.percentage);
-
-          // Cập nhật text
-          statusText.textContent = data.status;
-          progressText.textContent = `${data.processed_pages}/${data.total_pages} trang`;
-          timeRemaining.textContent = `Thời gian còn lại: ${
-            data.estimated_time || "Đang tính..."
-          }`;
-          percentageText.textContent = `${data.percentage}%`;
-
-          // Hiển thị progress container
-          document.getElementById("progressContainer").style.display = "block";
-
-          if (data.complete) {
-            eventSource.close();
-            // Ẩn progress container sau 2 giây khi hoàn thành
-            setTimeout(() => {
-              document.getElementById("progressContainer").style.display =
-                "none";
-            }, 2000);
+          if (elements.progressBar && typeof data.percentage === "number") {
+            const percentage = Math.min(100, Math.max(0, data.percentage));
+            elements.progressBar.style.width = `${percentage}%`;
+            elements.progressBar.setAttribute("aria-valuenow", percentage);
           }
-        };
+
+          // Cập nhật tổng số trang
+          if (elements.totalPages && typeof data.total_pages === "number") {
+            elements.totalPages.textContent = data.total_pages;
+          }
+
+          // Cập nhật số trang đã xử lý
+          if (
+            elements.processedPages &&
+            typeof data.processed_pages === "number"
+          ) {
+            elements.processedPages.textContent = data.processed_pages;
+          }
+
+          // Cập nhật thời gian còn lại
+          if (elements.timeRemaining) {
+            elements.timeRemaining.textContent =
+              data.estimated_time || "Đang tính...";
+          }
+
+          // Cập nhật phần trăm
+          if (
+            elements.progressPercentage &&
+            typeof data.percentage === "number"
+          ) {
+            const percentage = Math.min(100, Math.max(0, data.percentage));
+            elements.progressPercentage.textContent = `${percentage}%`;
+          }
+
+          // Cập nhật trạng thái
+          if (elements.processingStatus) {
+            elements.processingStatus.textContent =
+              data.status || "Đang xử lý...";
+          }
+
+          // Nếu hoàn thành, ẩn loading container sau 1 giây
+          if (data.complete) {
+            setTimeout(() => {
+              const loadingElement = document.getElementById("loading");
+              if (loadingElement) {
+                loadingElement.style.display = "none";
+              }
+            }, 1000);
+          }
+        } catch (error) {
+          console.error("Error updating progress:", error);
+        }
       }
 
       function uploadFile() {
@@ -515,42 +893,46 @@
       }
 
       async function analyzePdf() {
-        if (!uploadedFile) {
-          alert("Vui lòng upload file trước khi phân tích");
-          return;
-        }
-
-        document.getElementById("loading").style.display = "block";
-        document.getElementById("result").style.display = "none";
-        document.getElementById("downloadBtn").style.display = "none";
-
-        // Reset progress
-        startTime = Date.now();
-        processedPages = 0;
-        document.querySelector(".progress-bar").style.width = "0%";
-        document.getElementById("timeRemaining").textContent = "Đang tính...";
-
-        // Bắt đầu theo dõi tiến trình
-        startProgressMonitoring();
-
         try {
+          console.log("Starting PDF analysis...");
+
+          if (!uploadedFile) {
+            alert("Vui lòng upload file trước khi phân tích");
+            return;
+          }
+
+          // Reset UI và bắt đầu theo dõi tiến trình
+          document.getElementById("result").style.display = "none";
+          document.getElementById("downloadBtn").style.display = "none";
+
+          // Bắt đầu theo dõi tiến trình trước khi gửi request
+          startProgressMonitoring();
+
           const formData = new FormData();
           formData.append("file", uploadedFile);
+          console.log("Uploading file:", uploadedFile.name);
 
           const response = await fetch("/upload-pdf", {
             method: "POST",
             body: formData,
           });
 
+          if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+          }
+
           const data = await response.json();
+          console.log("Server response:", data);
+
+          if (data.error) {
+            throw new Error(data.error);
+          }
 
           if (data.success) {
-            // Store processed file info
             processedFile = {
               filename: data.output_file,
               originalName: uploadedFile.name,
             };
-            currentFileName = data.output_file;
 
             // Tìm các Order Number unique
             const uniqueOriginalOrders = [
@@ -558,50 +940,69 @@
             ];
             const uniqueSortedOrders = [...new Set(data.sorted_order_numbers)];
 
-            // Hiển thị danh sách Order Number
-            const originalOrdersDiv = document.getElementById("originalOrders");
-            originalOrdersDiv.innerHTML = uniqueOriginalOrders
-              .map((num) => `<span class="order-number">${num}</span>`)
-              .join("");
-
-            const sortedOrdersDiv = document.getElementById("sortedOrders");
-            sortedOrdersDiv.innerHTML = uniqueSortedOrders
-              .map((num) => `<span class="order-number">${num}</span>`)
-              .join("");
-
-            // Cập nhật số lượng
-            document.getElementById("uniqueOrderCount").textContent =
-              uniqueOriginalOrders.length;
-            document.getElementById("originalCount").textContent =
-              uniqueOriginalOrders.length;
-            document.getElementById("sortedCount").textContent =
-              uniqueSortedOrders.length;
-
-            // Hiển thị các nút
-            document.getElementById("downloadBtn").style.display =
-              "inline-flex";
-            document.getElementById("result").style.display = "block";
-
-            // Hiển thị thông báo thành công
-            const toast = document.getElementById("successToast");
-            toast.innerHTML =
-              '<i class="fas fa-check-circle"></i> File analyzed successfully!';
-            toast.style.display = "block";
-            setTimeout(() => {
-              toast.style.display = "none";
-            }, 3000);
+            // Cập nhật UI với kết quả
+            updateResults(uniqueOriginalOrders, uniqueSortedOrders);
           } else {
-            alert(data.error || "Có lỗi xảy ra");
+            throw new Error(data.error || "Có lỗi xảy ra khi xử lý file");
           }
         } catch (error) {
-          alert("Có lỗi xảy ra khi xử lý file");
-        } finally {
+          console.error("Error during analysis:", error);
+          alert("Có lỗi xảy ra: " + error.message);
+          // Đóng EventSource khi có lỗi
+          if (eventSource) {
+            eventSource.close();
+            eventSource = null;
+          }
+        }
+      }
+
+      function updateResults(originalOrders, sortedOrders) {
+        try {
+          // Cập nhật tổng số order
+          const totalOrdersElement = document.getElementById("totalOrders");
+          if (totalOrdersElement) {
+            totalOrdersElement.textContent = originalOrders.length;
+          }
+
+          // Cập nhật số lượng cho mỗi cột
+          const originalCountElement = document.getElementById("originalCount");
+          const sortedCountElement = document.getElementById("sortedCount");
+
+          if (originalCountElement) {
+            originalCountElement.textContent = originalOrders.length;
+          }
+          if (sortedCountElement) {
+            sortedCountElement.textContent = sortedOrders.length;
+          }
+
+          // Cập nhật danh sách orders
+          const originalOrdersDiv = document.getElementById("originalOrders");
+          const sortedOrdersDiv = document.getElementById("sortedOrders");
+
+          if (originalOrdersDiv) {
+            originalOrdersDiv.innerHTML = originalOrders
+              .map((num) => `<span class="order-number">${num}</span>`)
+              .join("");
+          }
+          if (sortedOrdersDiv) {
+            sortedOrdersDiv.innerHTML = sortedOrders
+              .map((num) => `<span class="order-number">${num}</span>`)
+              .join("");
+          }
+
+          // Hiển thị kết quả và nút download
+          document.getElementById("result").style.display = "block";
+          document.getElementById("downloadBtn").style.display = "inline-flex";
+
+          // Ẩn loading
           document.getElementById("loading").style.display = "none";
+        } catch (error) {
+          console.error("Error updating results:", error);
+          throw error;
         }
       }
 
       function downloadWithPath(event) {
-        // Prevent any default behavior
         event.preventDefault();
 
         if (!processedFile) {
@@ -609,53 +1010,31 @@
           return;
         }
 
-        // Kiểm tra file tồn tại trước khi download
         fetch(`/check-file-exists/${processedFile.filename}`)
           .then((response) => response.json())
           .then((data) => {
             if (data.exists) {
-              // Tạo tên file mới bằng cách thêm "sorted" vào tên gốc
-              const originalNameWithoutExt = processedFile.originalName.replace(
-                ".pdf",
-                ""
-              );
-              const sortedFileName = originalNameWithoutExt + "_sorted.pdf";
               const downloadUrl = "/download-pdf/" + processedFile.filename;
 
-              // Tải file bằng cách sử dụng fetch API
-              fetch(downloadUrl)
-                .then((response) => response.blob())
-                .then((blob) => {
-                  // Tạo URL cho blob
-                  const url = window.URL.createObjectURL(blob);
+              // Tạo link download ẩn
+              const link = document.createElement("a");
+              link.href = downloadUrl;
+              link.download = processedFile.originalName.replace(
+                ".pdf",
+                "_sorted.pdf"
+              );
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
 
-                  // Tạo thẻ a để download
-                  const link = document.createElement("a");
-                  link.href = url;
-                  link.download = sortedFileName;
-                  link.style.display = "none";
-                  document.body.appendChild(link);
-
-                  // Trigger download
-                  link.click();
-
-                  // Cleanup
-                  window.URL.revokeObjectURL(url);
-                  document.body.removeChild(link);
-
-                  // Hiển thị thông báo thành công
-                  const toast = document.getElementById("successToast");
-                  toast.innerHTML =
-                    '<i class="fas fa-check-circle"></i> File downloaded successfully!';
-                  toast.style.display = "block";
-                  setTimeout(() => {
-                    toast.style.display = "none";
-                  }, 3000);
-                })
-                .catch((error) => {
-                  console.error("Error downloading file:", error);
-                  alert("Có lỗi khi tải file. Vui lòng thử lại.");
-                });
+              // Hiển thị thông báo thành công
+              const toast = document.getElementById("successToast");
+              toast.innerHTML =
+                '<i class="fas fa-check-circle"></i> File đã được tải xuống';
+              toast.style.display = "block";
+              setTimeout(() => {
+                toast.style.display = "none";
+              }, 3000);
             } else {
               alert("File không tồn tại hoặc đã bị xóa. Vui lòng tải lên lại.");
             }
@@ -666,30 +1045,13 @@
           });
       }
 
-      // Thêm event source để nhận cập nhật tiến trình
-      function startProgressMonitoring() {
-        const eventSource = new EventSource("/progress");
-        let isCompleted = false;
-
-        eventSource.onmessage = function (event) {
-          const data = JSON.parse(event.data);
-          if (data.total_pages) {
-            totalPages = data.total_pages;
-          }
-          if (data.processed_pages) {
-            processedPages = data.processed_pages;
-            updateProgress();
-          }
-          if (data.complete && !isCompleted) {
-            isCompleted = true;
-            eventSource.close();
-          }
-        };
-
-        eventSource.onerror = function () {
+      // Cleanup khi rời trang
+      window.addEventListener("beforeunload", function () {
+        if (eventSource) {
           eventSource.close();
-        };
-      }
+          eventSource = null;
+        }
+      });
     </script>
   </body>
 </html>

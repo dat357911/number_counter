@@ -187,27 +187,60 @@ def save_file_info(file_info):
         conn = sqlite3.connect(DATABASE)
         c = conn.cursor()
         
-        # Lưu thông tin file
-        c.execute('''
-            INSERT INTO files (
-                original_name, processed_name, file_path, 
-                file_size, total_pages, processed_pages,
-                status, processed_by, order_numbers, file_hash
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (
-            file_info['original_name'],
-            file_info['processed_name'],
-            file_info['path'],
-            file_info.get('file_size', 0),
-            file_info.get('total_pages', 0),
-            file_info.get('processed_pages', 0),
-            file_info.get('status', 'completed'),
-            session.get('username'),
-            ','.join(file_info.get('order_numbers', [])),
-            file_hash
-        ))
+        # Kiểm tra xem file hash đã tồn tại chưa
+        c.execute('SELECT id FROM files WHERE file_hash = ?', (file_hash,))
+        existing_file = c.fetchone()
         
-        file_id = c.lastrowid
+        if existing_file:
+            # Nếu file đã tồn tại, cập nhật thông tin mới
+            c.execute('''
+                UPDATE files SET 
+                    original_name = ?,
+                    processed_name = ?,
+                    file_path = ?,
+                    file_size = ?,
+                    total_pages = ?,
+                    processed_pages = ?,
+                    status = ?,
+                    processed_by = ?,
+                    order_numbers = ?,
+                    created_at = CURRENT_TIMESTAMP
+                WHERE file_hash = ?
+            ''', (
+                file_info['original_name'],
+                file_info['processed_name'],
+                file_info['path'],
+                file_info.get('file_size', 0),
+                file_info.get('total_pages', 0),
+                file_info.get('processed_pages', 0),
+                file_info.get('status', 'completed'),
+                session.get('username'),
+                ','.join(file_info.get('order_numbers', [])),
+                file_hash
+            ))
+            file_id = existing_file[0]
+        else:
+            # Nếu file chưa tồn tại, thêm mới
+            c.execute('''
+                INSERT INTO files (
+                    original_name, processed_name, file_path, 
+                    file_size, total_pages, processed_pages,
+                    status, processed_by, order_numbers, file_hash
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (
+                file_info['original_name'],
+                file_info['processed_name'],
+                file_info['path'],
+                file_info.get('file_size', 0),
+                file_info.get('total_pages', 0),
+                file_info.get('processed_pages', 0),
+                file_info.get('status', 'completed'),
+                session.get('username'),
+                ','.join(file_info.get('order_numbers', [])),
+                file_hash
+            ))
+            file_id = c.lastrowid
+        
         conn.commit()
         logging.info(f"File info saved successfully with ID: {file_id}")
         return file_id
@@ -654,32 +687,87 @@ def calculate():
 def pdf_analysis():
     return render_template('pdf_analysis.html')
 
+def calculate_remaining_time():
+    """Tính toán thời gian còn lại dựa trên tiến độ xử lý"""
+    try:
+        if progress_data['start_time'] and progress_data['processed_pages'] > 0:
+            elapsed_time = (datetime.now() - progress_data['start_time']).total_seconds()
+            if elapsed_time > 0:
+                # Tính tốc độ xử lý trung bình (trang/giây)
+                pages_per_second = progress_data['processed_pages'] / elapsed_time
+                
+                if pages_per_second > 0:
+                    # Tính số trang còn lại
+                    remaining_pages = progress_data['total_pages'] - progress_data['processed_pages']
+                    # Tính thời gian còn lại
+                    remaining_seconds = remaining_pages / pages_per_second
+                    
+                    # Format thời gian còn lại
+                    if remaining_seconds < 60:
+                        return f"{int(remaining_seconds)} giây"
+                    elif remaining_seconds < 3600:
+                        minutes = int(remaining_seconds / 60)
+                        seconds = int(remaining_seconds % 60)
+                        return f"{minutes} phút {seconds} giây"
+                    else:
+                        hours = int(remaining_seconds / 3600)
+                        minutes = int((remaining_seconds % 3600) / 60)
+                        return f"{hours} giờ {minutes} phút"
+    except Exception as e:
+        logging.error(f"Error calculating remaining time: {str(e)}")
+    
+    return "Đang tính..."
+
 @app.route('/progress')
 def progress():
     def generate():
-        while not progress_data['complete']:
-            # Tính toán thời gian còn lại
-            if progress_data['start_time'] and progress_data['processed_pages'] > 0:
-                elapsed_time = (datetime.now() - progress_data['start_time']).total_seconds()
-                pages_remaining = progress_data['total_pages'] - progress_data['processed_pages']
-                if elapsed_time > 0:
-                    pages_per_second = progress_data['processed_pages'] / elapsed_time
-                    if pages_per_second > 0:
-                        estimated_seconds = pages_remaining / pages_per_second
-                        progress_data['estimated_time'] = f"{int(estimated_seconds)} giây"
-                    else:
-                        progress_data['estimated_time'] = "Đang tính..."
-                else:
-                    progress_data['estimated_time'] = "Đang tính..."
-            
-            # Gửi cập nhật tiến trình
-            yield f"data: {json.dumps(progress_data)}\n\n"
-            time.sleep(0.5)
-        
-        # Gửi thông báo hoàn thành cuối cùng
-        yield f"data: {json.dumps(progress_data)}\n\n"
+        logging.info("Starting progress stream")
+        while True:
+            try:
+                # Tính toán thời gian còn lại
+                progress_data['estimated_time'] = calculate_remaining_time()
+                
+                # Log trạng thái hiện tại
+                logging.debug(f"Current progress: {progress_data}")
+                
+                # Gửi dữ liệu ngay lập tức
+                data = {
+                    'total_pages': progress_data['total_pages'],
+                    'processed_pages': progress_data['processed_pages'],
+                    'current_page': progress_data['current_page'],
+                    'percentage': progress_data['percentage'],
+                    'status': progress_data['status'],
+                    'estimated_time': progress_data['estimated_time'],
+                    'complete': progress_data['complete']
+                }
+                
+                # Gửi dữ liệu với format SSE
+                yield f"data: {json.dumps(data)}\n\n"
+                
+                # Nếu hoàn thành thì dừng
+                if progress_data['complete']:
+                    logging.info("Processing complete, ending progress stream")
+                    break
+                
+                time.sleep(0.2)  # Giảm thời gian chờ xuống 0.2 giây
+                
+            except Exception as e:
+                logging.error(f"Error in progress stream: {str(e)}")
+                break
     
-    return Response(stream_with_context(generate()), mimetype='text/event-stream')
+    # Thêm headers để tránh cache và cho phép streaming
+    response = Response(
+        stream_with_context(generate()),
+        mimetype='text/event-stream',
+        headers={
+            'Cache-Control': 'no-cache',
+            'X-Accel-Buffering': 'no',
+            'Connection': 'keep-alive',
+            'Access-Control-Allow-Origin': '*'
+        }
+    )
+    
+    return response
 
 # Cấu hình batch size và thread pool
 BATCH_SIZE = 10  # Số trang xử lý mỗi batch
@@ -732,9 +820,8 @@ def upload_pdf():
         # Reset tiến trình
         reset_progress()
         
+        # Log environment variables và thông tin hệ thống
         logging.info("Starting file upload process")
-        
-        # Log environment variables
         logging.info(f"PYTHONPATH: {os.environ.get('PYTHONPATH', 'Not set')}")
         logging.info(f"Current working directory: {os.getcwd()}")
         logging.info(f"Temp directory path: {app.config['UPLOAD_FOLDER']}")
@@ -1084,6 +1171,7 @@ def download_archived(filename):
         return jsonify({'error': 'Không thể tải file'}), 404
 
 def reset_progress():
+    """Reset progress_data về trạng thái ban đầu"""
     global progress_data
     progress_data = {
         'total_pages': 0,
@@ -1092,8 +1180,9 @@ def reset_progress():
         'percentage': 0,
         'status': 'Đang khởi tạo...',
         'start_time': datetime.now(),
-        'estimated_time': None,
-        'complete': False
+        'estimated_time': 'Đang tính...',
+        'complete': False,
+        'order_numbers': []
     }
 
 @app.route('/admin')
