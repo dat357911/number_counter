@@ -13237,3 +13237,275 @@
 2025-04-02 22:48:30,567 - INFO - Scheduler has been shut down
 2025-04-02 22:48:30,569 - DEBUG - Looking for jobs to run
 2025-04-02 22:48:30,569 - DEBUG - No jobs; waiting until a job is added
+2025-04-03 21:38:10,434 - INFO - === Checking Environment Variables ===
+2025-04-03 21:38:10,434 - INFO - PYTHONPATH: None
+2025-04-03 21:38:10,434 - INFO - POPPLER_PATH: None
+2025-04-03 21:38:10,434 - INFO - TESSERACT_CMD: None
+2025-04-03 21:38:10,434 - INFO - FLASK_APP: None
+2025-04-03 21:38:10,434 - INFO - FLASK_ENV: None
+2025-04-03 21:38:10,434 - INFO - =====================================
+2025-04-03 21:38:10,434 - INFO - Current working directory: D:\Automation
+2025-04-03 21:38:10,434 - INFO - Directory contents: ['-p', '.dockerignore', '.git', 'app.log', 'app.py', 'archive', 'check_and_update_packages.py', 'database.db', 'Dockerfile', 'requirements.txt', 'temp', 'templates', 'wsgi.py', '__pycache__']
+2025-04-03 21:38:10,434 - INFO - Directory exists: D:\Automation\temp
+2025-04-03 21:38:10,434 - INFO - Directory permissions: 777
+2025-04-03 21:38:10,434 - INFO - Directory exists: D:\Automation\archive
+2025-04-03 21:38:10,434 - INFO - Directory permissions: 777
+2025-04-03 21:38:10,434 - WARNING - Directory does not exist: D:\Automation\debug
+2025-04-03 21:38:10,482 - INFO - Database initialized successfully
+2025-04-03 21:38:10,482 - INFO - Checking directory: D:\Automation\temp
+2025-04-03 21:38:10,482 - INFO - Directory already exists: D:\Automation\temp
+2025-04-03 21:38:10,482 - INFO - Current directory permissions: 777
+2025-04-03 21:38:10,482 - INFO - Checking directory: D:\Automation\archive
+2025-04-03 21:38:10,482 - INFO - Directory already exists: D:\Automation\archive
+2025-04-03 21:38:10,482 - INFO - Current directory permissions: 777
+2025-04-03 21:38:10,498 - DEBUG - Looking up time zone info from registry
+2025-04-03 21:38:10,498 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-03 21:38:10,498 - INFO - Added job "Cleanup old data every hour" to job store "default"
+2025-04-03 21:38:10,498 - INFO - Scheduler started
+2025-04-03 21:38:10,498 - DEBUG - Looking for jobs to run
+2025-04-03 21:38:10,514 - DEBUG - Next wakeup is due at 2025-04-03 22:38:10.498758+07:00 (in 3599.984190 seconds)
+2025-04-03 21:38:10,530 - INFO - [31m[1mWARNING: This is a development server. Do not use it in a production deployment. Use a production WSGI server instead.[0m
+ * Running on http://127.0.0.1:5000
+2025-04-03 21:38:10,530 - INFO - [33mPress CTRL+C to quit[0m
+2025-04-03 21:38:10,530 - INFO -  * Restarting with stat
+2025-04-03 21:38:11,181 - INFO - === Checking Environment Variables ===
+2025-04-03 21:38:11,181 - INFO - PYTHONPATH: None
+2025-04-03 21:38:11,181 - INFO - POPPLER_PATH: None
+2025-04-03 21:38:11,181 - INFO - TESSERACT_CMD: None
+2025-04-03 21:38:11,181 - INFO - FLASK_APP: None
+2025-04-03 21:38:11,181 - INFO - FLASK_ENV: None
+2025-04-03 21:38:11,181 - INFO - =====================================
+2025-04-03 21:38:11,181 - INFO - Current working directory: D:\Automation
+2025-04-03 21:38:11,181 - INFO - Directory contents: ['-p', '.dockerignore', '.git', 'app.log', 'app.py', 'archive', 'check_and_update_packages.py', 'database.db', 'Dockerfile', 'requirements.txt', 'temp', 'templates', 'wsgi.py', '__pycache__']
+2025-04-03 21:38:11,181 - INFO - Directory exists: D:\Automation\temp
+2025-04-03 21:38:11,181 - INFO - Directory permissions: 777
+2025-04-03 21:38:11,181 - INFO - Directory exists: D:\Automation\archive
+2025-04-03 21:38:11,181 - INFO - Directory permissions: 777
+2025-04-03 21:38:11,181 - WARNING - Directory does not exist: D:\Automation\debug
+2025-04-03 21:38:11,212 - INFO - Database initialized successfully
+2025-04-03 21:38:11,212 - INFO - Checking directory: D:\Automation\temp
+2025-04-03 21:38:11,212 - INFO - Directory already exists: D:\Automation\temp
+2025-04-03 21:38:11,212 - INFO - Current directory permissions: 777
+2025-04-03 21:38:11,212 - INFO - Checking directory: D:\Automation\archive
+2025-04-03 21:38:11,212 - INFO - Directory already exists: D:\Automation\archive
+2025-04-03 21:38:11,212 - INFO - Current directory permissions: 777
+2025-04-03 21:38:11,212 - DEBUG - Looking up time zone info from registry
+2025-04-03 21:38:11,212 - INFO - Adding job tentatively -- it will be properly scheduled when the scheduler starts
+2025-04-03 21:38:11,212 - INFO - Added job "Cleanup old data every hour" to job store "default"
+2025-04-03 21:38:11,212 - INFO - Scheduler started
+2025-04-03 21:38:11,212 - DEBUG - Looking for jobs to run
+2025-04-03 21:38:11,228 - DEBUG - Next wakeup is due at 2025-04-03 22:38:11.212688+07:00 (in 3599.984318 seconds)
+2025-04-03 21:38:11,228 - WARNING -  * Debugger is active!
+2025-04-03 21:38:11,228 - INFO -  * Debugger PIN: 141-998-857
+2025-04-03 21:38:32,415 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:32] "[32mGET / HTTP/1.1[0m" 302 -
+2025-04-03 21:38:32,448 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:32] "GET /login HTTP/1.1" 200 -
+2025-04-03 21:38:35,646 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:35] "GET /login HTTP/1.1" 200 -
+2025-04-03 21:38:36,175 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:36] "[33mGET /favicon.ico HTTP/1.1[0m" 404 -
+2025-04-03 21:38:38,646 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:38] "[32mPOST /login HTTP/1.1[0m" 302 -
+2025-04-03 21:38:38,657 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:38] "GET / HTTP/1.1" 200 -
+2025-04-03 21:38:39,593 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:39] "GET / HTTP/1.1" 200 -
+2025-04-03 21:38:42,430 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:42] "GET /number-analysis HTTP/1.1" 200 -
+2025-04-03 21:38:43,178 - INFO - 127.0.0.1 - - [03/Apr/2025 21:38:43] "GET /number-analysis HTTP/1.1" 200 -
+2025-04-03 21:39:05,976 - INFO - Received request with mode: single
+2025-04-03 21:39:05,976 - INFO - Received numbers: 6,11-18,20
+2025-04-03 21:39:05,976 - INFO - Parsed numbers: [6, 11, 12, 13, 14, 15, 16, 17, 18, 20]
+2025-04-03 21:39:05,976 - INFO - Received request with mode: single
+2025-04-03 21:39:05,976 - INFO - Received numbers: 6,11-18,20
+2025-04-03 21:39:05,976 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:05] "POST /calculate HTTP/1.1" 200 -
+2025-04-03 21:39:05,976 - INFO - Parsed numbers: [6, 11, 12, 13, 14, 15, 16, 17, 18, 20]
+2025-04-03 21:39:05,976 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:05] "POST /calculate HTTP/1.1" 200 -
+2025-04-03 21:39:18,948 - INFO - Received request with mode: dual
+2025-04-03 21:39:18,949 - INFO - Received sequences: 6,11-18,20, 28,30-32,37-38,41,43,46-51,53
+2025-04-03 21:39:18,950 - INFO - Received request with mode: dual
+2025-04-03 21:39:18,950 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:18] "POST /calculate HTTP/1.1" 200 -
+2025-04-03 21:39:18,950 - INFO - Received sequences: 6,11-18,20, 28,30-32,37-38,41,43,46-51,53
+2025-04-03 21:39:18,951 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:18] "POST /calculate HTTP/1.1" 200 -
+2025-04-03 21:39:26,657 - INFO - Received request with mode: dual
+2025-04-03 21:39:26,657 - INFO - Received sequences: 22-27,29,33-36,39-40,42,44-45,52,54, 28,30-32,37-38,41,43,46-51,53
+2025-04-03 21:39:26,659 - INFO - Received request with mode: dual
+2025-04-03 21:39:26,660 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:26] "POST /calculate HTTP/1.1" 200 -
+2025-04-03 21:39:26,660 - INFO - Received sequences: 22-27,29,33-36,39-40,42,44-45,52,54, 28,30-32,37-38,41,43,46-51,53
+2025-04-03 21:39:26,660 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:26] "POST /calculate HTTP/1.1" 200 -
+2025-04-03 21:39:30,234 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:30] "GET /data-analysis HTTP/1.1" 200 -
+2025-04-03 21:39:32,055 - INFO - 127.0.0.1 - - [03/Apr/2025 21:39:32] "GET /data-analysis HTTP/1.1" 200 -
+2025-04-03 21:41:17,000 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:16] "GET /pdf-analysis HTTP/1.1" 200 -
+2025-04-03 21:41:19,119 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:19] "GET /pdf-analysis HTTP/1.1" 200 -
+2025-04-03 21:41:20,403 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:20] "GET /archive HTTP/1.1" 200 -
+2025-04-03 21:41:21,377 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:21] "GET /archive HTTP/1.1" 200 -
+2025-04-03 21:41:22,971 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:22] "GET /history HTTP/1.1" 200 -
+2025-04-03 21:41:23,810 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:23] "GET /history HTTP/1.1" 200 -
+2025-04-03 21:41:25,296 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:25] "GET /pdf-analysis HTTP/1.1" 200 -
+2025-04-03 21:41:26,200 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:26] "GET /pdf-analysis HTTP/1.1" 200 -
+2025-04-03 21:41:37,994 - INFO - Starting file upload process
+2025-04-03 21:41:37,995 - INFO - PYTHONPATH: Not set
+2025-04-03 21:41:37,995 - INFO - Current working directory: D:\Automation
+2025-04-03 21:41:37,995 - INFO - Temp directory path: D:\Automation\temp
+2025-04-03 21:41:37,995 - INFO - Archive directory path: D:\Automation\archive
+2025-04-03 21:41:37,995 - INFO - Poppler path: C:\Program Files\poppler-23.11.0\Library\bin
+2025-04-03 21:41:37,995 - INFO - Tesseract path: C:\Program Files\Tesseract-OCR\tesseract.exe
+2025-04-03 21:41:37,995 - INFO - Checking directory: D:\Automation\temp
+2025-04-03 21:41:37,995 - INFO - Directory already exists: D:\Automation\temp
+2025-04-03 21:41:37,996 - INFO - Current directory permissions: 777
+2025-04-03 21:41:37,996 - INFO - Checking directory: D:\Automation\temp\debug
+2025-04-03 21:41:37,996 - INFO - Directory does not exist, creating: D:\Automation\temp\debug
+2025-04-03 21:41:37,997 - INFO - Created directory: D:\Automation\temp\debug
+2025-04-03 21:41:37,997 - INFO - Set permissions 777 for directory: D:\Automation\temp\debug
+2025-04-03 21:41:38,001 - INFO - Processing file: New order received on Mar 1_removed (DONE).pdf
+2025-04-03 21:41:38,002 - INFO - Full temp path: D:\Automation\temp\20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf
+2025-04-03 21:41:38,005 - INFO - Cleaned up debug folder
+2025-04-03 21:41:38,005 - INFO - Checking directory: D:\Automation\temp
+2025-04-03 21:41:38,007 - INFO - Starting progress stream
+2025-04-03 21:41:38,007 - INFO - Directory already exists: D:\Automation\temp
+2025-04-03 21:41:38,008 - INFO - Current directory permissions: 777
+2025-04-03 21:41:38,173 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:38] "GET /progress HTTP/1.1" 200 -
+2025-04-03 21:41:38,174 - INFO - File saved to: D:\Automation\temp\20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf
+2025-04-03 21:41:38,175 - INFO - Saved file permissions: 666
+2025-04-03 21:41:38,200 - INFO - PDF has 11 pages
+2025-04-03 21:41:38,200 - INFO - Poppler installation check passed
+2025-04-03 21:41:38,201 - INFO - Converting PDF to images: D:\Automation\temp\20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf
+2025-04-03 21:41:38,201 - INFO - Platform: Windows
+2025-04-03 21:41:38,201 - INFO - POPPLER_PATH: C:\Program Files\poppler-23.11.0\Library\bin
+2025-04-03 21:41:38,201 - INFO - PATH: C:\Program Files\poppler-23.11.0\Library\bin;C:\Program Files\Python312\Scripts\;C:\Program Files\Python312\;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\NVIDIA Corporation\PhysX\Common;c:\Program Files (x86)\Microsoft SQL Server\100\Tools\Binn\;c:\Program Files (x86)\Microsoft SQL Server\100\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0\;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\NVIDIA Corporation\NVIDIA app\NvDLISR;C:\Program Files\Git\cmd;C:\Program Files\Tesseract-OCR;C:\Program Files\poppler\Library\bin;C:\Users\ACER\AppData\Local\Microsoft\WindowsApps;C:\Users\ACER\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Python312;C:\Program Files\Python312\Scripts;C:\Users\ACER\AppData\Local\Programs\cursor\resources\app\bin;C:\Program Files\Tesseract-OCR;C:\Program Files\poppler\Library\bin;
+2025-04-03 21:41:38,201 - INFO - Checking directory: D:\Automation\temp\debug
+2025-04-03 21:41:38,202 - INFO - Directory does not exist, creating: D:\Automation\temp\debug
+2025-04-03 21:41:38,202 - INFO - Created directory: D:\Automation\temp\debug
+2025-04-03 21:41:38,202 - INFO - Set permissions 777 for directory: D:\Automation\temp\debug
+2025-04-03 21:41:38,203 - INFO - Processing batch 1 to 10
+2025-04-03 21:41:40,011 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:40,013 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:40,013 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:40,061 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:40,062 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:40,062 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:40,102 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:40,103 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:40,103 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:41,560 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:41,561 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:41,561 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:41,610 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:41,611 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:41,611 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:41,672 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:41,672 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:41,673 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:42,534 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:42,535 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:42,535 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:42,560 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:42,560 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:42,560 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:43,624 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:43,625 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:43,625 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:43,664 - DEBUG - STREAM b'IHDR' 16 13
+2025-04-03 21:41:43,664 - DEBUG - STREAM b'pHYs' 41 9
+2025-04-03 21:41:43,664 - DEBUG - STREAM b'IDAT' 62 8192
+2025-04-03 21:41:43,664 - INFO - Processing page 1
+2025-04-03 21:41:43,765 - DEBUG - Saved debug image for page 1
+2025-04-03 21:41:43,765 - INFO - Extracting order number from page 1
+2025-04-03 21:41:43,804 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_27lhncrc_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_27lhncrc', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:44,014 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_ox0i93k5_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_ox0i93k5', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:44,169 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_d5urp_ix_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_d5urp_ix', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:44,351 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_nu2u3qhb_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_nu2u3qhb', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:44,511 - INFO - Found order number 0900820851 on page 1
+2025-04-03 21:41:44,640 - INFO - Processing page 2
+2025-04-03 21:41:44,793 - DEBUG - Saved debug image for page 2
+2025-04-03 21:41:44,794 - INFO - Extracting order number from page 2
+2025-04-03 21:41:44,841 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_tihhy5ae_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_tihhy5ae', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:45,002 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_8gy93doc_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_8gy93doc', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:45,148 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_rf74edtl_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_rf74edtl', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:45,301 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_2iwg5f_h_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_2iwg5f_h', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:45,450 - INFO - Found order number 0900820851 on page 2
+2025-04-03 21:41:45,472 - INFO - Processing page 3
+2025-04-03 21:41:45,571 - DEBUG - Saved debug image for page 3
+2025-04-03 21:41:45,572 - INFO - Extracting order number from page 3
+2025-04-03 21:41:45,607 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_ogn2env9_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_ogn2env9', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:45,765 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_xfqf18vt_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_xfqf18vt', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:45,915 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_evpx_vuy_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_evpx_vuy', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:46,072 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_1694hckl_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_1694hckl', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:46,233 - INFO - Found order number 0900820852 on page 3
+2025-04-03 21:41:46,261 - INFO - Processing page 4
+2025-04-03 21:41:46,358 - DEBUG - Saved debug image for page 4
+2025-04-03 21:41:46,359 - INFO - Extracting order number from page 4
+2025-04-03 21:41:46,395 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_3slzmlm__input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_3slzmlm_', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:46,560 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_6xmfmn8c_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_6xmfmn8c', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:46,725 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_z87rld74_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_z87rld74', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:46,901 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_5i5xgwac_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_5i5xgwac', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:47,047 - INFO - Found order number 0900820852 on page 4
+2025-04-03 21:41:47,065 - INFO - Processing page 5
+2025-04-03 21:41:47,156 - DEBUG - Saved debug image for page 5
+2025-04-03 21:41:47,157 - INFO - Extracting order number from page 5
+2025-04-03 21:41:47,193 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_hhlknhnz_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_hhlknhnz', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:47,361 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess__dpuj6dc_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess__dpuj6dc', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:47,511 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_4ljtweck_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_4ljtweck', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:47,678 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_q40nbxt8_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_q40nbxt8', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:47,832 - INFO - Found order number 0900820852 on page 5
+2025-04-03 21:41:47,865 - INFO - Processing page 6
+2025-04-03 21:41:47,972 - DEBUG - Saved debug image for page 6
+2025-04-03 21:41:47,972 - INFO - Extracting order number from page 6
+2025-04-03 21:41:48,009 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_z6y9v_qr_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_z6y9v_qr', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:48,164 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_jj3syfor_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_jj3syfor', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:48,310 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_7sz7sv44_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_7sz7sv44', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:48,462 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_m6et3zxp_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_m6et3zxp', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:48,608 - INFO - Found order number 0900820853 on page 6
+2025-04-03 21:41:48,628 - INFO - Processing page 7
+2025-04-03 21:41:48,740 - DEBUG - Saved debug image for page 7
+2025-04-03 21:41:48,740 - INFO - Extracting order number from page 7
+2025-04-03 21:41:48,783 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess__fde5_c6_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess__fde5_c6', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:48,947 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_6dobns32_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_6dobns32', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:49,096 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_pn5pchvr_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_pn5pchvr', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:49,257 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_dg1phm0r_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_dg1phm0r', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:49,409 - INFO - Found order number 0900820853 on page 7
+2025-04-03 21:41:49,428 - INFO - Processing page 8
+2025-04-03 21:41:49,509 - DEBUG - Saved debug image for page 8
+2025-04-03 21:41:49,509 - INFO - Extracting order number from page 8
+2025-04-03 21:41:49,543 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_gsjrjb3m_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_gsjrjb3m', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:49,700 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_v9_xlahp_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_v9_xlahp', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:49,847 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_uzjn0y4q_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_uzjn0y4q', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:50,009 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_gekfpf_0_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_gekfpf_0', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:50,160 - INFO - Found order number 0900820853 on page 8
+2025-04-03 21:41:50,178 - INFO - Processing page 9
+2025-04-03 21:41:50,284 - DEBUG - Saved debug image for page 9
+2025-04-03 21:41:50,285 - INFO - Extracting order number from page 9
+2025-04-03 21:41:50,328 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_rqtbhu0y_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_rqtbhu0y', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:50,492 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_wyz42bvb_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_wyz42bvb', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:50,641 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_zm2449fu_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_zm2449fu', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:50,802 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_c6rx3ypt_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_c6rx3ypt', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:50,955 - INFO - Found order number 0900820850 on page 9
+2025-04-03 21:41:50,972 - INFO - Processing page 10
+2025-04-03 21:41:51,063 - DEBUG - Saved debug image for page 10
+2025-04-03 21:41:51,063 - INFO - Extracting order number from page 10
+2025-04-03 21:41:51,099 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_t2ijl_d3_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_t2ijl_d3', '--psm', '6', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:51,253 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_2tcg32m1_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_2tcg32m1', '--psm', '7', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:51,405 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_2cjw8kwk_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_2cjw8kwk', '--psm', '8', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:51,567 - DEBUG - ['C:\\Program Files\\Tesseract-OCR\\tesseract.exe', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_dhnmilaw_input.PNG', 'C:\\Users\\ACER\\AppData\\Local\\Temp\\tess_dhnmilaw', '--psm', '13', '-c', 'tessedit_char_whitelist=0123456789', 'txt']
+2025-04-03 21:41:51,717 - INFO - Found order number 0900820850 on page 10
+2025-04-03 21:41:51,749 - INFO - Processing batch 11 to 10
+2025-04-03 21:41:51,780 - ERROR - No images extracted from batch 11 to 10
+2025-04-03 21:41:51,781 - INFO - Creating new PDF...
+2025-04-03 21:41:51,796 - INFO - PDF created successfully
+2025-04-03 21:41:51,816 - INFO - File info saved successfully with ID: 8
+2025-04-03 21:41:51,833 - INFO - 127.0.0.1 - - [03/Apr/2025 21:41:51] "POST /upload-pdf HTTP/1.1" 200 -
+2025-04-03 21:41:52,000 - INFO - Processing complete, ending progress stream
+2025-04-03 21:42:00,230 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:00] "GET /check-file-exists/sorted_20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf HTTP/1.1" 200 -
+2025-04-03 21:42:00,251 - INFO - File copied to archive: D:\Automation\archive\sorted_20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf
+2025-04-03 21:42:00,252 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:00] "GET /download-pdf/sorted_20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf HTTP/1.1" 200 -
+2025-04-03 21:42:05,011 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:05] "GET /archive HTTP/1.1" 200 -
+2025-04-03 21:42:05,995 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:05] "GET /archive HTTP/1.1" 200 -
+2025-04-03 21:42:08,179 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:08] "GET /history HTTP/1.1" 200 -
+2025-04-03 21:42:08,970 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:08] "GET /history HTTP/1.1" 200 -
+2025-04-03 21:42:26,287 - INFO - Removed archived file: sorted_20250403_214138_New_order_received_on_Mar_1_removed_DONE.pdf
+2025-04-03 21:42:26,287 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:26] "POST /clear-history HTTP/1.1" 200 -
+2025-04-03 21:42:26,393 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:26] "GET /history HTTP/1.1" 200 -
+2025-04-03 21:42:27,106 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:27] "GET /history HTTP/1.1" 200 -
+2025-04-03 21:42:30,755 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:30] "GET /archive HTTP/1.1" 200 -
+2025-04-03 21:42:31,608 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:31] "GET /archive HTTP/1.1" 200 -
+2025-04-03 21:42:32,143 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:32] "GET / HTTP/1.1" 200 -
+2025-04-03 21:42:33,170 - INFO - 127.0.0.1 - - [03/Apr/2025 21:42:33] "GET / HTTP/1.1" 200 -
+2025-04-03 21:42:37,966 - INFO - Scheduler has been shut down
+2025-04-03 21:42:37,966 - DEBUG - Looking for jobs to run
+2025-04-03 21:42:37,966 - DEBUG - No jobs; waiting until a job is added
+2025-04-03 21:42:38,144 - INFO - Scheduler has been shut down
+2025-04-03 21:42:38,149 - DEBUG - Looking for jobs to run
+2025-04-03 21:42:38,151 - DEBUG - No jobs; waiting until a job is added
